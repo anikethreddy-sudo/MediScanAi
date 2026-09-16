@@ -195,6 +195,7 @@ async def predict(
     "gender": gender,
     "prediction": prediction,
     "confidence": confidence,
+
     "original_image": f"https://mediscanai-bb2m.onrender.com/uploads/{uid}.png",
     "heatmap": f"https://mediscanai-bb2m.onrender.com/uploads/{uid}_heatmap.png",
     "pdf": f"https://mediscanai-bb2m.onrender.com/pdf/{uid}.pdf",
