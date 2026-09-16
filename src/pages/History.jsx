@@ -30,20 +30,24 @@ export default function History() {
       <div
         style={{
           padding: "35px",
-          background: "#F4F8FF",
+          background: "#EEF4FF",
           minHeight: "100vh",
-          color: "#111827",
         }}
       >
-        <h1 style={{ fontSize: "48px", marginBottom: "8px" }}>
+        <h1 style={{ fontSize: "56px", fontWeight: "300" }}>
           Scan History
         </h1>
 
-        <p style={{ color: "#475569", marginBottom: "25px" }}>
+        <p
+          style={{
+            marginBottom: "25px",
+            color: "#374151",
+            fontSize: "24px",
+          }}
+        >
           Doctor: {localStorage.getItem("doctorName")}
         </p>
 
-        {/* SEARCH BAR */}
         <input
           type="text"
           placeholder="🔍 Search patient name..."
@@ -51,17 +55,16 @@ export default function History() {
           onChange={(e) => setSearch(e.target.value)}
           style={{
             width: "320px",
-            padding: "12px 16px",
-            borderRadius: "10px",
+            padding: "14px",
+            borderRadius: "12px",
             border: "1px solid #CBD5E1",
-            marginBottom: "22px",
-            fontSize: "15px",
-            outline: "none",
+            marginBottom: "20px",
+            fontSize: "16px",
           }}
         />
 
         {filtered.length === 0 ? (
-          <h3>No patient found.</h3>
+          <h3>No scans found.</h3>
         ) : (
           <table
             width="100%"
@@ -73,12 +76,7 @@ export default function History() {
               borderCollapse: "collapse",
             }}
           >
-            <thead
-              style={{
-                background: "#2563EB",
-                color: "white",
-              }}
-            >
+            <thead style={{ background: "#2563EB", color: "white" }}>
               <tr>
                 <th>Patient</th>
                 <th>Age</th>
@@ -99,9 +97,9 @@ export default function History() {
                     borderBottom: "1px solid #E5E7EB",
                   }}
                 >
-                  <td>{item.patient_name}</td>
-                  <td>{item.age}</td>
-                  <td>{item.gender}</td>
+                  <td style={{ color: "#111827" }}>{item.patient_name}</td>
+                  <td style={{ color: "#111827" }}>{item.age}</td>
+                  <td style={{ color: "#111827" }}>{item.gender}</td>
 
                   <td
                     style={{
@@ -115,17 +113,20 @@ export default function History() {
                     {item.prediction}
                   </td>
 
-                  <td>{item.confidence}%</td>
-                  <td>{item.date}</td>
+                  <td style={{ color: "#111827" }}>
+                    {item.confidence}%
+                  </td>
+
+                  <td style={{ color: "#111827" }}>{item.date}</td>
 
                   <td>
                     <button
                       onClick={() => setSelected(item)}
                       style={{
-                        background: "#2563EB",
+                        background: "#1D4ED8",
                         color: "white",
                         border: "none",
-                        padding: "8px 16px",
+                        padding: "8px 18px",
                         borderRadius: "8px",
                         cursor: "pointer",
                       }}
@@ -139,7 +140,6 @@ export default function History() {
           </table>
         )}
 
-        {/* VIEW POPUP */}
         {selected && (
           <div
             style={{
@@ -153,51 +153,42 @@ export default function History() {
           >
             <div
               style={{
+                width: "560px",
                 background: "white",
-                width: "420px",
-                borderRadius: "18px",
+                borderRadius: "22px",
                 padding: "25px",
               }}
             >
               <h2
                 style={{
-                  marginBottom: "18px",
-                  color: "#1D4ED8",
+                  color: "#2563EB",
+                  marginBottom: "15px",
                 }}
               >
                 Patient Details
               </h2>
 
-              <p>
-                <b>Name:</b> {selected.patient_name}
-              </p>
-              <p>
-                <b>Age:</b> {selected.age}
-              </p>
-              <p>
-                <b>Gender:</b> {selected.gender}
-              </p>
-              <p>
-                <b>Doctor:</b> {selected.username}
-              </p>
-              <p>
-                <b>Prediction:</b> {selected.prediction}
-              </p>
-              <p>
-                <b>Confidence:</b> {selected.confidence}%
-              </p>
-              <p>
-                <b>Date:</b> {selected.date}
-              </p>
+              <p><b>Name:</b> {selected.patient_name}</p>
+              <p><b>Age:</b> {selected.age}</p>
+              <p><b>Gender:</b> {selected.gender}</p>
+              <p><b>Doctor:</b> {selected.username}</p>
+              <p><b>Prediction:</b> {selected.prediction}</p>
+              <p><b>Confidence:</b> {selected.confidence}%</p>
+              <p><b>Date:</b> {selected.date}</p>
 
-              <div style={{ marginTop: "22px" }}>
+              <div style={{ marginTop: "18px", textAlign: "center" }}>
                 <img
                   src={selected.original_image}
                   alt="X-Ray"
                   style={{
                     width: "100%",
+                    maxWidth: "320px",
                     borderRadius: "12px",
-                    border: "1px solid #E5E7EB",
+                    border: "1px solid #D1D5DB",
+                  }}
+                  onError={(e) => {
+                    e.target.src =
+                      "https://placehold.co/320x320?text=No+X-Ray";
                   }}
                 />
               </div>
@@ -207,12 +198,12 @@ export default function History() {
                 style={{
                   width: "100%",
                   marginTop: "20px",
-                  padding: "12px",
-                  border: "none",
-                  borderRadius: "10px",
                   background: "#2563EB",
                   color: "white",
-                  fontSize: "15px",
+                  border: "none",
+                  padding: "14px",
+                  borderRadius: "12px",
+                  fontSize: "16px",
                   cursor: "pointer",
                 }}
               >
