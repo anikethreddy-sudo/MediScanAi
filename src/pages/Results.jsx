@@ -13,7 +13,15 @@ export default function Results() {
     return (
       <>
         <Navbar />
-        <div style={{ padding: "40px" }}>
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontFamily: "Poppins, sans-serif",
+          }}
+        >
           <h2>No Result Found</h2>
         </div>
       </>
@@ -27,120 +35,188 @@ export default function Results() {
       <div
         style={{
           minHeight: "100vh",
-          background: "#F3F7FF",
+          background: "#F4F8FF",
           padding: "35px",
           fontFamily: "Poppins, sans-serif",
+          color: "#111827",
         }}
       >
-        <h1 style={{ color: "#1D4ED8", marginBottom: "6px" }}>
-          AI Analysis Result
-        </h1>
+        <div style={{ maxWidth: "1200px", margin: "auto" }}>
+          <h1
+            style={{
+              fontSize: "42px",
+              marginBottom: "8px",
+              color: "#111827",
+            }}
+          >
+            AI Analysis Result
+          </h1>
 
-        <p style={{ color: "#64748B", marginBottom: "25px" }}>
-          Patient: <b>{result.patient_name}</b> • {result.age} yrs •{" "}
-          {result.gender}
-        </p>
+          <p
+            style={{
+              color: "#374151",
+              fontSize: "18px",
+              marginBottom: "28px",
+            }}
+          >
+            Patient: <b>{result.patient_name}</b> • {result.age} yrs •{" "}
+            {result.gender}
+          </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "25px",
-          }}
-        >
+          {/* Images */}
           <div
             style={{
-              background: "white",
-              borderRadius: "18px",
-              padding: "20px",
-              boxShadow: "0 10px 25px rgba(0,0,0,.08)",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))",
+              gap: "22px",
             }}
           >
-            <h3 style={{ marginBottom: "15px" }}>Original X-Ray</h3>
-
-            <img
-              src={result.original_image}
-              alt="Original X-Ray"
+            {/* Original */}
+            <div
               style={{
-                width: "100%",
-                borderRadius: "12px",
+                background: "white",
+                borderRadius: "18px",
+                padding: "18px",
+                border: "1px solid #DCE8FF",
               }}
-            />
+            >
+              <h2 style={{ color: "#111827", marginBottom: "15px" }}>
+                Original X-Ray
+              </h2>
+
+              <img
+                src={result.original_image}
+                alt="Original X-Ray"
+                style={{
+                  width: "100%",
+                  height: "420px",
+                  objectFit: "contain",
+                  borderRadius: "14px",
+                  background: "#EEF4FF",
+                }}
+              />
+            </div>
+
+            {/* Heatmap */}
+            <div
+              style={{
+                background: "white",
+                borderRadius: "18px",
+                padding: "18px",
+                border: "1px solid #DCE8FF",
+              }}
+            >
+              <h2 style={{ color: "#111827", marginBottom: "15px" }}>
+                AI Heatmap
+              </h2>
+
+              <img
+                src={result.heatmap}
+                alt="AI Heatmap"
+                style={{
+                  width: "100%",
+                  height: "420px",
+                  objectFit: "contain",
+                  borderRadius: "14px",
+                  background: "#EEF4FF",
+                }}
+                onError={(e) => {
+                  e.target.src = result.original_image;
+                }}
+              />
+            </div>
           </div>
 
+          {/* Summary */}
           <div
             style={{
+              marginTop: "28px",
               background: "white",
               borderRadius: "18px",
-              padding: "20px",
-              boxShadow: "0 10px 25px rgba(0,0,0,.08)",
+              border: "1px solid #DCE8FF",
+              overflow: "hidden",
             }}
           >
-            <h3 style={{ marginBottom: "15px" }}>AI Heatmap</h3>
-
-            <img
-              src={result.heatmap}
-              alt="Heatmap"
+            <div
               style={{
-                width: "100%",
-                borderRadius: "12px",
+                padding: "18px 22px",
+                borderBottom: "1px solid #E5E7EB",
               }}
-            />
+            >
+              <h2 style={{ color: "#111827" }}>Diagnosis Summary</h2>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+                gap: "20px",
+                padding: "22px",
+              }}
+            >
+              <div>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>Doctor</p>
+                <h3 style={{ color: "#111827" }}>Dr. {result.username}</h3>
+              </div>
+
+              <div>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>Prediction</p>
+                <h3
+                  style={{
+                    color:
+                      result.prediction === "Normal"
+                        ? "#16A34A"
+                        : "#DC2626",
+                  }}
+                >
+                  {result.prediction}
+                </h3>
+              </div>
+
+              <div>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>Confidence</p>
+                <h3 style={{ color: "#111827" }}>{result.confidence}%</h3>
+              </div>
+
+              <div>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>Patient</p>
+                <h3 style={{ color: "#111827" }}>{result.patient_name}</h3>
+              </div>
+
+              <div>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>Age</p>
+                <h3 style={{ color: "#111827" }}>{result.age}</h3>
+              </div>
+
+              <div>
+                <p style={{ color: "#6B7280", fontSize: "14px" }}>Gender</p>
+                <h3 style={{ color: "#111827" }}>{result.gender}</h3>
+              </div>
+            </div>
+
+            {/* PDF Button */}
+            <div style={{ padding: "0 22px 22px" }}>
+              <a
+                href={result.pdf}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "center",
+                  background: "linear-gradient(90deg,#2563EB,#3B82F6)",
+                  color: "white",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  textDecoration: "none",
+                  fontWeight: "600",
+                  fontSize: "17px",
+                }}
+              >
+                ⬇ Download PDF Report
+              </a>
+            </div>
           </div>
-        </div>
-
-        <div
-          style={{
-            marginTop: "28px",
-            background: "white",
-            borderRadius: "18px",
-            padding: "22px",
-            boxShadow: "0 10px 25px rgba(0,0,0,.08)",
-          }}
-        >
-          <h2 style={{ marginBottom: "15px" }}>Diagnosis Summary</h2>
-
-          <table
-            style={{
-              width: "100%",
-              fontSize: "16px",
-            }}
-          >
-            <tbody>
-              <tr>
-                <td><b>Doctor</b></td>
-                <td>Dr. {result.username}</td>
-              </tr>
-
-              <tr>
-                <td><b>Prediction</b></td>
-                <td>{result.prediction}</td>
-              </tr>
-
-              <tr>
-                <td><b>Confidence</b></td>
-                <td>{result.confidence}%</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <a
-            href={result.pdf}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: "inline-block",
-              marginTop: "20px",
-              background: "#2563EB",
-              color: "white",
-              padding: "12px 22px",
-              borderRadius: "10px",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
-          >
-            Download PDF Report
-          </a>
         </div>
       </div>
     </>
