@@ -189,16 +189,16 @@ async def predict(
     doc.build(story)
 
     return {
-        "username": username,
-        "patient_name": patient_name,
-        "age": age,
-        "gender": gender,
-        "prediction": prediction,
-        "confidence": confidence,
-        "original_image": f"http://127.0.0.1:8001/uploads/{uid}.png",
-        "heatmap": f"http://127.0.0.1:8001/uploads/{uid}_heatmap.png",
-        "pdf": f"http://127.0.0.1:8001/pdf/{uid}.pdf",
-    }
+    "username": username,
+    "patient_name": patient_name,
+    "age": age,
+    "gender": gender,
+    "prediction": prediction,
+    "confidence": confidence,
+    "original_image": f"https://mediscanai-bb2m.onrender.com/uploads/{uid}.png",
+    "heatmap": f"https://mediscanai-bb2m.onrender.com/uploads/{uid}_heatmap.png",
+    "pdf": f"https://mediscanai-bb2m.onrender.com/pdf/{uid}.pdf",
+}
 
 
 @app.get("/pdf/{filename}")

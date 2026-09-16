@@ -28,10 +28,14 @@ export default function Upload() {
     formData.append("gender", gender);
     formData.append("file", file);
 
-    const response = await fetch("http://127.0.0.1:8001/predict", {
-      method: "POST",
-      body: formData,
-    });
+    // ✅ Render Backend URL
+    const response = await fetch(
+      "https://mediscanai-bb2m.onrender.com/predict",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
     const data = await response.json();
 
@@ -237,11 +241,9 @@ export default function Upload() {
         <Navbar />
 
         <div className="container">
-
           <div className="hero">
 
             {/* LEFT */}
-
             <div className="left">
 
               <h1>
@@ -279,7 +281,6 @@ export default function Upload() {
             </div>
 
             {/* RIGHT */}
-
             <div className="right">
 
               <div className="title">Upload New Scan</div>
@@ -342,7 +343,6 @@ export default function Upload() {
             </div>
 
           </div>
-
         </div>
       </div>
     </>
