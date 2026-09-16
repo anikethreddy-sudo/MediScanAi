@@ -25,6 +25,115 @@ export default function History() {
 
   return (
     <>
+      <style>{`
+        *{
+          font-family:Poppins,sans-serif;
+        }
+
+        .overlay{
+          position:fixed;
+          inset:0;
+          background:rgba(0,0,0,.55);
+          display:flex;
+          justify-content:center;
+          align-items:center;
+          z-index:999;
+          padding:20px;
+        }
+
+        .modal{
+          background:#fff;
+          width:950px;
+          max-width:95%;
+          max-height:90vh;
+          overflow-y:auto;
+          border-radius:22px;
+          padding:28px;
+          color:#111827;
+          box-shadow:0 20px 60px rgba(0,0,0,.25);
+        }
+
+        .modal::-webkit-scrollbar{
+          width:8px;
+        }
+
+        .modal::-webkit-scrollbar-thumb{
+          background:#2563EB;
+          border-radius:10px;
+        }
+
+        .closeBtn{
+          width:100%;
+          padding:14px;
+          border:none;
+          border-radius:12px;
+          background:#2563EB;
+          color:white;
+          font-size:16px;
+          font-weight:600;
+          cursor:pointer;
+          margin-top:20px;
+        }
+
+        .closeBtn:hover{
+          background:#1D4ED8;
+        }
+
+        .table{
+          width:100%;
+          border-collapse:collapse;
+          background:white;
+          border-radius:14px;
+          overflow:hidden;
+        }
+
+        .table th{
+          background:#2563EB;
+          color:white;
+          padding:14px;
+        }
+
+        .table td{
+          padding:12px;
+          text-align:center;
+          color:#111827;
+          border-bottom:1px solid #E5E7EB;
+        }
+
+        .viewBtn{
+          background:#1D4ED8;
+          color:white;
+          border:none;
+          padding:8px 18px;
+          border-radius:8px;
+          cursor:pointer;
+        }
+
+        .search{
+          width:330px;
+          padding:14px;
+          border-radius:12px;
+          border:1px solid #CBD5E1;
+          margin-bottom:22px;
+          font-size:16px;
+        }
+
+        @media(max-width:768px){
+          .modal{
+            width:100%;
+            padding:18px;
+          }
+
+          .search{
+            width:100%;
+          }
+
+          .images{
+            grid-template-columns:1fr !important;
+          }
+        }
+      `}</style>
+
       <Navbar />
 
       <div
@@ -34,49 +143,39 @@ export default function History() {
           minHeight: "100vh",
         }}
       >
-        <h1 style={{ fontSize: "56px", fontWeight: "300" }}>
+        <h1
+          style={{
+            fontSize: "56px",
+            fontWeight: "300",
+            color: "#111827",
+          }}
+        >
           Scan History
         </h1>
 
         <p
           style={{
-            marginBottom: "25px",
             color: "#374151",
             fontSize: "24px",
+            marginBottom: "25px",
           }}
         >
           Doctor: {localStorage.getItem("doctorName")}
         </p>
 
         <input
+          className="search"
           type="text"
           placeholder="🔍 Search patient name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "320px",
-            padding: "14px",
-            borderRadius: "12px",
-            border: "1px solid #CBD5E1",
-            marginBottom: "20px",
-            fontSize: "16px",
-          }}
         />
 
         {filtered.length === 0 ? (
-          <h3>No scans found.</h3>
+          <h3 style={{ color: "#111827" }}>No scans found.</h3>
         ) : (
-          <table
-            width="100%"
-            cellPadding="12"
-            style={{
-              background: "white",
-              borderRadius: "14px",
-              overflow: "hidden",
-              borderCollapse: "collapse",
-            }}
-          >
-            <thead style={{ background: "#2563EB", color: "white" }}>
+          <table className="table">
+            <thead>
               <tr>
                 <th>Patient</th>
                 <th>Age</th>
@@ -90,16 +189,10 @@ export default function History() {
 
             <tbody>
               {filtered.map((item, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    textAlign: "center",
-                    borderBottom: "1px solid #E5E7EB",
-                  }}
-                >
-                  <td style={{ color: "#111827" }}>{item.patient_name}</td>
-                  <td style={{ color: "#111827" }}>{item.age}</td>
-                  <td style={{ color: "#111827" }}>{item.gender}</td>
+                <tr key={index}>
+                  <td>{item.patient_name}</td>
+                  <td>{item.age}</td>
+                  <td>{item.gender}</td>
 
                   <td
                     style={{
@@ -113,23 +206,13 @@ export default function History() {
                     {item.prediction}
                   </td>
 
-                  <td style={{ color: "#111827" }}>
-                    {item.confidence}%
-                  </td>
-
-                  <td style={{ color: "#111827" }}>{item.date}</td>
+                  <td>{item.confidence}%</td>
+                  <td>{item.date}</td>
 
                   <td>
                     <button
+                      className="viewBtn"
                       onClick={() => setSelected(item)}
-                      style={{
-                        background: "#1D4ED8",
-                        color: "white",
-                        border: "none",
-                        padding: "8px 18px",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                      }}
                     >
                       View
                     </button>
@@ -141,71 +224,106 @@ export default function History() {
         )}
 
         {selected && (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,.45)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <div className="overlay" onClick={() => setSelected(null)}>
             <div
-              style={{
-                width: "560px",
-                background: "white",
-                borderRadius: "22px",
-                padding: "25px",
-              }}
+              className="modal"
+              onClick={(e) => e.stopPropagation()}
             >
               <h2
                 style={{
-                  color: "#2563EB",
-                  marginBottom: "15px",
+                  color: "#111827",
+                  marginBottom: "18px",
                 }}
               >
                 Patient Details
               </h2>
 
-              <p><b>Name:</b> {selected.patient_name}</p>
-              <p><b>Age:</b> {selected.age}</p>
-              <p><b>Gender:</b> {selected.gender}</p>
-              <p><b>Doctor:</b> {selected.username}</p>
-              <p><b>Prediction:</b> {selected.prediction}</p>
-              <p><b>Confidence:</b> {selected.confidence}%</p>
-              <p><b>Date:</b> {selected.date}</p>
+              <div
+                style={{
+                  color: "#111827",
+                  lineHeight: "32px",
+                  fontSize: "17px",
+                }}
+              >
+                <b>Name:</b> {selected.patient_name}
+                <br />
+                <b>Age:</b> {selected.age}
+                <br />
+                <b>Gender:</b> {selected.gender}
+                <br />
+                <b>Doctor:</b> {selected.username}
+                <br />
+                <b>Prediction:</b> {selected.prediction}
+                <br />
+                <b>Confidence:</b> {selected.confidence}%
+                <br />
+                <b>Date:</b> {selected.date}
+              </div>
 
-              <div style={{ marginTop: "18px", textAlign: "center" }}>
-                <img
-                  src={selected.original_image}
-                  alt="X-Ray"
-                  style={{
-                    width: "100%",
-                    maxWidth: "320px",
-                    borderRadius: "12px",
-                    border: "1px solid #D1D5DB",
-                  }}
-                  onError={(e) => {
-                    e.target.src =
-                      "https://placehold.co/320x320?text=No+X-Ray";
-                  }}
-                />
+              <div
+                className="images"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "20px",
+                  marginTop: "28px",
+                }}
+              >
+                <div>
+                  <h3
+                    style={{
+                      textAlign: "center",
+                      color: "#111827",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    Original X-Ray
+                  </h3>
+
+                  <img
+                    src={selected.original_image}
+                    alt="Original"
+                    style={{
+                      width: "100%",
+                      height: "300px",
+                      objectFit: "contain",
+                      background: "#EEF4FF",
+                      borderRadius: "14px",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <h3
+                    style={{
+                      textAlign: "center",
+                      color: "#111827",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    AI Heatmap
+                  </h3>
+
+                  <img
+                    src={selected.heatmap}
+                    alt="Heatmap"
+                    style={{
+                      width: "100%",
+                      height: "300px",
+                      objectFit: "contain",
+                      background: "#EEF4FF",
+                      borderRadius: "14px",
+                    }}
+                    onError={(e) => {
+                      e.target.src = selected.original_image;
+                    }}
+                  />
+                </div>
               </div>
 
               <button
+                className="closeBtn"
                 onClick={() => setSelected(null)}
-                style={{
-                  width: "100%",
-                  marginTop: "20px",
-                  background: "#2563EB",
-                  color: "white",
-                  border: "none",
-                  padding: "14px",
-                  borderRadius: "12px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                }}
               >
                 Close
               </button>
