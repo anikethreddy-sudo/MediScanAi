@@ -10,7 +10,6 @@ export default function History() {
     const allHistory =
       JSON.parse(localStorage.getItem("scanHistory")) || [];
 
-    // SHOW ONLY LOGGED-IN DOCTOR HISTORY
     const myHistory = allHistory.filter(
       (item) => item.username === doctor
     );
@@ -22,23 +21,39 @@ export default function History() {
     <>
       <Navbar />
 
-      <div style={{ padding: "35px", background: "#F4F8FF", minHeight: "100vh" }}>
-        <h1>Scan History</h1>
-        <p>Doctor: {localStorage.getItem("doctorName")}</p>
+      <div
+        style={{
+          padding: "35px",
+          background: "#F4F8FF",
+          minHeight: "100vh",
+          color: "#111827",
+        }}
+      >
+        <h1 style={{ color: "#111827" }}>Scan History</h1>
+
+        <p style={{ color: "#374151", marginBottom: "20px" }}>
+          Doctor: {localStorage.getItem("doctorName")}
+        </p>
 
         {history.length === 0 ? (
-          <h3 style={{ marginTop: "30px" }}>No scans found.</h3>
+          <h3 style={{ color: "#111827" }}>No scans found.</h3>
         ) : (
           <table
             width="100%"
             cellPadding="12"
             style={{
-              marginTop: "25px",
+              marginTop: "20px",
               background: "white",
               borderRadius: "12px",
+              color: "#111827",
             }}
           >
-            <thead style={{ background: "#1D4ED8", color: "white" }}>
+            <thead
+              style={{
+                background: "#2563EB",
+                color: "white",
+              }}
+            >
               <tr>
                 <th>Patient</th>
                 <th>Age</th>
@@ -51,7 +66,14 @@ export default function History() {
 
             <tbody>
               {history.map((item, index) => (
-                <tr key={index} style={{ textAlign: "center" }}>
+                <tr
+                  key={index}
+                  style={{
+                    textAlign: "center",
+                    color: "#111827",
+                    borderBottom: "1px solid #E5E7EB",
+                  }}
+                >
                   <td>{item.patient_name}</td>
                   <td>{item.age}</td>
                   <td>{item.gender}</td>
