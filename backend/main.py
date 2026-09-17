@@ -29,7 +29,7 @@ app.add_middleware(
 
 UPLOAD_FOLDER = "uploads"
 REPORT_FOLDER = "reports"
-MODEL_PATH = "models/pneumonia_model.h5"
+MODEL_PATH = "pneumonia_model.h5"
 DB = "mediscan.db"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
