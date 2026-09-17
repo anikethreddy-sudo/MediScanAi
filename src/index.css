@@ -30,11 +30,11 @@ table{
   color:#111827;
 }
 
-/* Keep Navbar white */
+/* Keep ONLY Navbar text WHITE */
 .nav,
 .nav *,
 .brand,
-.title,
+.brand .title,
 .link,
 .doctor{
   color:#FFFFFF !important;
