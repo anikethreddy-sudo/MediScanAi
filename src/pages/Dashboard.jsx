@@ -18,11 +18,9 @@ export default function Dashboard() {
   }, []);
 
   const totalScans = history.length;
-
   const normalCases = history.filter(
     (h) => h.prediction === "Normal"
   ).length;
-
   const alerts = totalScans - normalCases;
 
   const accuracy = totalScans
@@ -35,7 +33,7 @@ export default function Dashboard() {
   const weekData = useMemo(() => {
     const arr = [0, 0, 0, 0, 0, 0, 0];
 
-    history.forEach((item) => {
+    history.forEach(() => {
       const d = new Date();
       let day = d.getDay();
       day = day === 0 ? 6 : day - 1;
@@ -46,7 +44,6 @@ export default function Dashboard() {
   }, [history]);
 
   const max = Math.max(...weekData, 1);
-
   const recent = history.slice(0, 5);
 
   return (
@@ -60,12 +57,12 @@ export default function Dashboard() {
       }
 
       body{
-        background:#04184D;
+        background:#EEF4FF;
       }
 
       .page{
         min-height:100vh;
-        background:linear-gradient(135deg,#04184D,#0B2A72);
+        background:#EEF4FF;
       }
 
       .container{
@@ -75,17 +72,17 @@ export default function Dashboard() {
       }
 
       .hero{
-        color:white;
         margin-bottom:28px;
       }
 
       .hero h1{
         font-size:42px;
-        font-weight:300;
+        font-weight:600;
+        color:#111827 !important;
       }
 
       .hero p{
-        color:#D6E5FF;
+        color:#64748B !important;
         margin-top:8px;
         font-size:17px;
       }
@@ -98,14 +95,10 @@ export default function Dashboard() {
       }
 
       .card{
-        background:#EEF4FF;
+        background:white;
         border-radius:20px;
         padding:22px;
-        transition:.25s;
-      }
-
-      .card:hover{
-        transform:translateY(-4px);
+        box-shadow:0 8px 20px rgba(0,0,0,.08);
       }
 
       .icon{
@@ -116,7 +109,7 @@ export default function Dashboard() {
         font-size:34px;
         color:#2563EB;
         margin-top:12px;
-        font-weight:600;
+        font-weight:700;
       }
 
       .label{
@@ -131,16 +124,17 @@ export default function Dashboard() {
       }
 
       .panel{
-        background:#EEF4FF;
+        background:white;
         border-radius:22px;
         padding:22px;
+        box-shadow:0 8px 20px rgba(0,0,0,.08);
       }
 
       .title{
         font-size:22px;
-        color:#111827;
-        margin-bottom:18px;
+        color:#111827 !important;
         font-weight:600;
+        margin-bottom:18px;
       }
 
       .bars{
@@ -149,7 +143,7 @@ export default function Dashboard() {
         align-items:flex-end;
         justify-content:space-between;
         padding:10px;
-        border-bottom:2px solid #CBD5E1;
+        border-bottom:2px solid #E5E7EB;
       }
 
       .barWrap{
@@ -182,7 +176,7 @@ export default function Dashboard() {
         justify-content:space-between;
         align-items:center;
         padding:12px 0;
-        border-bottom:1px solid #D9E6FF;
+        border-bottom:1px solid #E5E7EB;
       }
 
       .activity:last-child{
@@ -208,12 +202,12 @@ export default function Dashboard() {
       }
 
       .name{
-        color:#111827;
+        color:#111827 !important;
         font-weight:600;
       }
 
       .time{
-        color:#64748B;
+        color:#64748B !important;
         font-size:13px;
       }
 
@@ -255,9 +249,9 @@ export default function Dashboard() {
       }
       `}</style>
 
-      <div className="page">
-        <Navbar />
+      <Navbar />
 
+      <div className="page">
         <div className="container">
 
           <div className="hero">
@@ -299,37 +293,30 @@ export default function Dashboard() {
               <div className="title">Weekly Scan Analytics</div>
 
               <div className="bars">
-
                 {weekData.map((v, i) => (
                   <div className="barWrap" key={i}>
-
                     <div className="count">{v}</div>
 
                     <div
                       className="bar"
                       style={{
-                        height: `${(v / max) * 170 + 12}px`
+                        height: `${(v / max) * 170 + 12}px`,
                       }}
                     ></div>
 
                     <div className="day">
                       {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i]}
                     </div>
-
                   </div>
                 ))}
-
               </div>
             </div>
 
             <div className="panel">
-
               <div className="title">Recent Patients</div>
 
               {recent.length === 0 ? (
-                <div className="empty">
-                  No scans available
-                </div>
+                <div className="empty">No scans available</div>
               ) : (
                 recent.map((item, i) => (
                   <div className="activity" key={i}>
