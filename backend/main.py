@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 from PIL import Image
 import numpy as np
 import uuid
@@ -30,7 +30,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REPORT_FOLDER, exist_ok=True)
 
 MODEL_PATH = os.path.join(BASE_DIR, "pneumonia_model.h5")
-model = load_model(MODEL_PATH)
+model = tf.keras.models.load_model(
+    MODEL_PATH,
+    compile=False
+)
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_FOLDER), name="uploads")
 app.mount("/reports", StaticFiles(directory=REPORT_FOLDER), name="reports")
