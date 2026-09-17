@@ -17,7 +17,7 @@ grpcio==1.83.1
 h11==0.16.0
 h5py==3.11.0
 idna==3.19
-keras==3.3.3
+keras==3.8.0
 kiwisolver==1.5.1
 libclang==18.1.1
 Markdown==3.10
@@ -45,9 +45,9 @@ requests==2.34.2
 rich==15.0.0
 six==1.17.0
 starlette==1.6.0
-tensorboard==2.16.2
+tensorboard==2.19.0
 tensorboard-data-server==0.7.2
-tensorflow==2.16.1
+tensorflow==2.19.0
 tensorflow-io-gcs-filesystem==0.31.0
 termcolor==3.3.0
 typing-inspection==0.4.4
