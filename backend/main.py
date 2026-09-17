@@ -1,14 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from tensorflow.keras.initializers import GlorotUniform
-import tensorflow as tf
 from PIL import Image
+import tf_keras as keras
 import numpy as np
 import uuid
 import os
 
-# ---------------- APP ---------------- #
 app = FastAPI(title="MediScan AI")
 
 app.add_middleware(
@@ -19,35 +17,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------- FOLDERS ---------------- #
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("reports", exist_ok=True)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/reports", StaticFiles(directory="reports"), name="reports")
 
-# ---------------- KERAS FIX ---------------- #
-class CompatGlorotUniform(GlorotUniform):
-    def __init__(self, seed=None, input_axes=None, output_axes=None, **kwargs):
-        super().__init__(seed=seed)
-
-# ---------------- LOAD MODEL ---------------- #
 MODEL_PATH = "pneumonia_model.h5"
 
-model = tf.keras.models.load_model(
-    MODEL_PATH,
-    compile=False,
-    custom_objects={
-        "GlorotUniform": CompatGlorotUniform
-    }
-)
+# IMPORTANT: use tf_keras instead of keras 3
+model = keras.models.load_model(MODEL_PATH, compile=False)
 
-# ---------------- HOME ---------------- #
 @app.get("/")
 def home():
     return {"message": "Welcome to MediScan AI 🚀"}
 
-# ---------------- PREDICTION ---------------- #
 @app.post("/predict")
 async def predict(
     username: str = Form(...),
@@ -67,10 +51,10 @@ async def predict(
     img = Image.open(image_path).convert("RGB")
     img = img.resize((224, 224))
 
-    arr = np.array(img) / 255.0
-    arr = np.expand_dims(arr, axis=0)
+    x = np.array(img, dtype=np.float32) / 255.0
+    x = np.expand_dims(x, axis=0)
 
-    prob = float(model.predict(arr, verbose=0)[0][0])
+    prob = float(model.predict(x, verbose=0)[0][0])
 
     if prob >= 0.5:
         prediction = "Pneumonia"
