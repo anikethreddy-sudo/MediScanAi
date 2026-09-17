@@ -54,8 +54,13 @@ export default function History() {
 
       .doctor{
         font-size:24px;
-        color:#374151;
+        color:#111827 !important;
         margin:12px 0 28px;
+        font-weight:500;
+      }
+
+      .doctor b{
+        color:#111827 !important;
       }
 
       .search{
@@ -66,6 +71,7 @@ export default function History() {
         font-size:16px;
         margin-bottom:20px;
         outline:none;
+        color:#111827;
       }
 
       table{
@@ -78,6 +84,10 @@ export default function History() {
 
       thead{
         background:#2563EB;
+        color:white;
+      }
+
+      thead th{
         color:white;
       }
 
@@ -147,6 +157,10 @@ export default function History() {
         color:#111827;
         line-height:34px;
         font-size:17px;
+      }
+
+      .details b{
+        color:#111827;
       }
 
       .grid{
