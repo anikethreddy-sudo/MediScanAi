@@ -1,16 +1,14 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from tensorflow.keras.initializers import GlorotUniform
 import tensorflow as tf
 from PIL import Image
 import numpy as np
 import uuid
 import os
-import shutil
 
-from heatmap import generate_heatmap
-from pdf_report import create_pdf
-
+# ---------------- APP ---------------- #
 app = FastAPI(title="MediScan AI")
 
 app.add_middleware(
@@ -21,47 +19,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# ---------------- FOLDERS ---------------- #
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("reports", exist_ok=True)
 
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
-REPORT_FOLDER = os.path.join(BASE_DIR, "reports")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/reports", StaticFiles(directory="reports"), name="reports")
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(REPORT_FOLDER, exist_ok=True)
+# ---------------- KERAS FIX ---------------- #
+class CompatGlorotUniform(GlorotUniform):
+    def __init__(self, seed=None, input_axes=None, output_axes=None, **kwargs):
+        super().__init__(seed=seed)
 
-MODEL_PATH = os.path.join(BASE_DIR, "pneumonia_model.h5")
+# ---------------- LOAD MODEL ---------------- #
+MODEL_PATH = "pneumonia_model.h5"
+
 model = tf.keras.models.load_model(
     MODEL_PATH,
-    compile=False
+    compile=False,
+    custom_objects={
+        "GlorotUniform": CompatGlorotUniform
+    }
 )
 
-app.mount("/uploads", StaticFiles(directory=UPLOAD_FOLDER), name="uploads")
-app.mount("/reports", StaticFiles(directory=REPORT_FOLDER), name="reports")
-
-
-def predict_image(path):
-    img = Image.open(path).convert("RGB")
-    img = img.resize((224, 224))
-    img = np.array(img) / 255.0
-    img = np.expand_dims(img, axis=0)
-
-    pred = model.predict(img, verbose=0)[0][0]
-
-    if pred > 0.5:
-        label = "Pneumonia"
-        confidence = round(pred * 100, 2)
-    else:
-        label = "Normal"
-        confidence = round((1 - pred) * 100, 2)
-
-    return label, confidence
-
-
+# ---------------- HOME ---------------- #
 @app.get("/")
 def home():
-    return {"message": "MediScan AI Backend Running"}
+    return {"message": "Welcome to MediScan AI 🚀"}
 
-
+# ---------------- PREDICTION ---------------- #
 @app.post("/predict")
 async def predict(
     username: str = Form(...),
@@ -70,32 +56,28 @@ async def predict(
     gender: str = Form(...),
     file: UploadFile = File(...)
 ):
+    ext = file.filename.split(".")[-1]
     uid = str(uuid.uuid4())
 
-    image_path = os.path.join(
-        UPLOAD_FOLDER,
-        f"{uid}_{file.filename}"
-    )
+    image_path = f"uploads/{uid}.{ext}"
 
-    with open(image_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    with open(image_path, "wb") as f:
+        f.write(await file.read())
 
-    prediction, confidence = predict_image(image_path)
+    img = Image.open(image_path).convert("RGB")
+    img = img.resize((224, 224))
 
-    heatmap_path = generate_heatmap(image_path, model)
+    arr = np.array(img) / 255.0
+    arr = np.expand_dims(arr, axis=0)
 
-    pdf_path = create_pdf(
-        username=username,
-        patient_name=patient_name,
-        age=age,
-        gender=gender,
-        prediction=prediction,
-        confidence=confidence,
-        image_path=image_path,
-        heatmap_path=heatmap_path,
-        output_folder=REPORT_FOLDER,
-        report_id=uid
-    )
+    prob = float(model.predict(arr, verbose=0)[0][0])
+
+    if prob >= 0.5:
+        prediction = "Pneumonia"
+        confidence = round(prob * 100, 1)
+    else:
+        prediction = "Normal"
+        confidence = round((1 - prob) * 100, 1)
 
     return {
         "username": username,
@@ -104,7 +86,7 @@ async def predict(
         "gender": gender,
         "prediction": prediction,
         "confidence": confidence,
-        "original_image": f"/uploads/{os.path.basename(image_path)}",
-        "heatmap": f"/uploads/{os.path.basename(heatmap_path)}",
-        "pdf": f"/reports/{os.path.basename(pdf_path)}"
+        "original_image": image_path,
+        "heatmap": image_path,
+        "pdf": ""
     }
