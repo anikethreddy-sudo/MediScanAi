@@ -18,7 +18,7 @@ export default function Dashboard() {
   }, []);
 
   const totalScans = history.length;
-  const normalCases = history.filter(h => h.prediction === "Normal").length;
+  const normalCases = history.filter((h) => h.prediction === "Normal").length;
   const alerts = totalScans - normalCases;
 
   const accuracy = totalScans
@@ -29,18 +29,20 @@ export default function Dashboard() {
     : "96.8";
 
   const weekData = useMemo(() => {
-    const arr = [0,0,0,0,0,0,0];
+    const arr = [0, 0, 0, 0, 0, 0, 0];
+
     history.forEach(() => {
       const d = new Date();
       let day = d.getDay();
       day = day === 0 ? 6 : day - 1;
       arr[day]++;
     });
+
     return arr;
   }, [history]);
 
-  const max = Math.max(...weekData,1);
-  const recent = history.slice(0,5);
+  const max = Math.max(...weekData, 1);
+  const recent = history.slice(0, 5);
 
   return (
     <>
@@ -49,7 +51,7 @@ export default function Dashboard() {
         margin:0;
         padding:0;
         box-sizing:border-box;
-        font-family:Poppins,sans-serif;
+        font-family:'Poppins',sans-serif;
       }
 
       body{
@@ -62,16 +64,15 @@ export default function Dashboard() {
       }
 
       .container{
+        padding:28px;
         max-width:1400px;
         margin:auto;
-        padding:28px;
       }
 
-      /* ONLY CHANGE: WHITE CARD */
       .hero{
-        background:#EEF4FF;
+        background:#EAF2FF;
         border-radius:22px;
-        padding:24px 28px;
+        padding:26px 30px;
         margin-bottom:28px;
       }
 
@@ -133,11 +134,10 @@ export default function Dashboard() {
         padding:22px;
       }
 
-      /* ONLY CHANGE: BLACK TITLES */
       .title{
         font-size:22px;
-        color:#111827;
-        font-weight:300;
+        color:#111827 !important;
+        font-weight:300 !important;
         margin-bottom:18px;
       }
 
@@ -205,7 +205,6 @@ export default function Dashboard() {
         font-weight:500;
       }
 
-      /* ONLY CHANGE: BLACK NAMES */
       .name{
         color:#111827;
         font-weight:500;
@@ -241,6 +240,7 @@ export default function Dashboard() {
         .stats{
           grid-template-columns:repeat(2,1fr);
         }
+
         .grid{
           grid-template-columns:1fr;
         }
@@ -254,7 +254,7 @@ export default function Dashboard() {
       `}</style>
 
       <div className="page">
-        <Navbar/>
+        <Navbar />
 
         <div className="container">
 
@@ -297,13 +297,15 @@ export default function Dashboard() {
               <div className="title">Weekly Scan Analytics</div>
 
               <div className="bars">
-                {weekData.map((v,i)=>(
+                {weekData.map((v, i) => (
                   <div className="barWrap" key={i}>
                     <div className="count">{v}</div>
 
                     <div
                       className="bar"
-                      style={{height:`${(v/max)*170+12}px`}}
+                      style={{
+                        height: `${(v / max) * 170 + 12}px`,
+                      }}
                     ></div>
 
                     <div className="day">
@@ -317,33 +319,32 @@ export default function Dashboard() {
             <div className="panel">
               <div className="title">Recent Patients</div>
 
-              {recent.length===0 ? (
+              {recent.length === 0 ? (
                 <div className="empty">No patient scans yet</div>
               ) : (
-                recent.map((item,i)=>(
+                recent.map((item, i) => (
                   <div className="activity" key={i}>
 
                     <div className="left">
                       <div className="avatar">
-                        {item.patient_name.charAt(0)}
+                        {item.patient_name.charAt(0).toUpperCase()}
                       </div>
 
                       <div>
-                        <div className="name">
-                          {item.patient_name}
-                        </div>
-
+                        <div className="name">{item.patient_name}</div>
                         <div className="time">
                           {item.age} yrs • {item.gender}
                         </div>
                       </div>
                     </div>
 
-                    <span className={`status ${
-                      item.prediction==="Normal"
-                        ? "normal"
-                        : "alert"
-                    }`}>
+                    <span
+                      className={`status ${
+                        item.prediction === "Normal"
+                          ? "normal"
+                          : "alert"
+                      }`}
+                    >
                       {item.prediction}
                     </span>
 
