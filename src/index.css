@@ -1,48 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
 
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
-}
-
-html,body,#root{
-  width:100%;
-  min-height:100%;
+  font-family:Poppins, sans-serif;
 }
 
 body{
-  background:#020F36;
-  color:#FFFFFF;
-  font-weight:300;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  background:#EEF4FF;
+  color:#111827;
 }
 
-/* Typography */
-h1,h2,h3,h4,h5,h6{
-  font-weight:300;
-  letter-spacing:-0.5px;
+/* Black text on all white pages */
+h1,h2,h3,h4,h5,h6,
+p,span,label,td,th,div{
+  color:#111827;
 }
 
-p,span,label,input,button,select,textarea,td,th{
-  font-weight:300;
-}
-
-/* Form controls */
 input,select,textarea{
-  outline:none;
-  border:none;
-  font-size:16px;
+  color:#111827;
 }
 
-button{
-  font-size:16px;
-  cursor:pointer;
-  transition:0.25s ease;
+input::placeholder{
+  color:#6B7280;
 }
 
-button:hover{
-  transform:translateY(-2px);
+table{
+  color:#111827;
+}
+
+/* Keep Navbar white */
+.nav,
+.nav *,
+.brand,
+.title,
+.link,
+.doctor{
+  color:#FFFFFF !important;
+}
+
+.active{
+  color:#FFFFFF !important;
+}
+
+.logout{
+  color:#FFFFFF !important;
 }
