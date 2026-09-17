@@ -4,137 +4,165 @@ import { useNavigate } from "react-router-dom";
 export default function DoctorLogin() {
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
+  const [doctorId, setDoctorId] = useState("");
+  const [doctorName, setDoctorName] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Save the real doctor name
-    localStorage.setItem("doctorName", username.trim());
+    if (!doctorId || !doctorName || !password) {
+      alert("Please fill all fields");
+      return;
+    }
 
-    // Go to dashboard/home
-    navigate("/");
+    // Save doctor session
+    localStorage.setItem("doctorId", doctorId);
+    localStorage.setItem("doctorName", doctorName);
+    localStorage.setItem("isLoggedIn", "true");
+
+    navigate("/dashboard");
   };
 
   return (
     <>
       <style>{`
-        *{
-          margin:0;
-          padding:0;
-          box-sizing:border-box;
-          font-family:'Poppins',sans-serif;
-        }
+      *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family:Poppins,sans-serif;
+      }
 
-        .loginPage{
-          min-height:100vh;
-          display:flex;
-          justify-content:center;
-          align-items:center;
-          background:linear-gradient(135deg,#E8F1FF,#D7E9FF,#C7E0FF);
-        }
+      body{
+        background:#0A2E73;
+      }
 
-        .card{
-          width:420px;
-          background:#FFFFFF;
-          border-radius:24px;
-          padding:38px;
-          box-shadow:0 20px 50px rgba(37,99,235,.15);
-        }
+      .page{
+        min-height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background:linear-gradient(135deg,#04184D,#0A2E73);
+        padding:20px;
+      }
 
-        .logo{
-          width:72px;
-          height:72px;
-          margin:auto;
-          border-radius:18px;
-          background:linear-gradient(135deg,#2563EB,#38BDF8);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          color:white;
-          font-size:34px;
-        }
+      .card{
+        width:430px;
+        background:#EEF4FF;
+        border-radius:24px;
+        padding:35px;
+        box-shadow:0 25px 60px rgba(0,0,0,.25);
+      }
 
-        h1{
-          text-align:center;
-          color:#0F172A;
-          font-size:30px;
-          font-weight:300;
-          margin-top:18px;
-        }
+      .logo{
+        width:90px;
+        height:90px;
+        margin:auto;
+        border-radius:50%;
+        background:linear-gradient(135deg,#2563EB,#38BDF8);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        color:white;
+        font-size:42px;
+      }
 
-        p{
-          text-align:center;
-          color:#64748B;
-          margin:8px 0 26px;
-          font-weight:300;
-        }
+      h1{
+        text-align:center;
+        color:#111827;
+        margin-top:18px;
+        font-weight:600;
+      }
 
-        input{
-          width:100%;
-          padding:14px;
-          margin-bottom:16px;
-          border:1px solid #D6E4FF;
-          border-radius:12px;
-          background:#F8FBFF;
-          font-size:15px;
-          outline:none;
-        }
+      p{
+        text-align:center;
+        color:#64748B;
+        margin:8px 0 28px;
+      }
 
-        input:focus{
-          border-color:#2563EB;
-        }
+      input{
+        width:100%;
+        padding:14px 16px;
+        margin-bottom:16px;
+        border-radius:12px;
+        border:1px solid #CBD5E1;
+        outline:none;
+        font-size:15px;
+        background:white;
+      }
 
-        button{
-          width:100%;
-          padding:15px;
-          border:none;
-          border-radius:12px;
-          background:linear-gradient(90deg,#2563EB,#38BDF8);
-          color:white;
-          font-size:16px;
-          cursor:pointer;
-        }
+      input:focus{
+        border-color:#2563EB;
+      }
 
-        .footer{
-          text-align:center;
-          margin-top:18px;
-          color:#94A3B8;
-          font-size:13px;
-          font-weight:300;
-        }
+      button{
+        width:100%;
+        padding:15px;
+        border:none;
+        border-radius:12px;
+        background:linear-gradient(90deg,#2563EB,#38BDF8);
+        color:white;
+        font-size:16px;
+        font-weight:600;
+        cursor:pointer;
+        margin-top:6px;
+      }
+
+      .footer{
+        text-align:center;
+        margin-top:20px;
+        color:#64748B;
+        font-size:13px;
+      }
       `}</style>
 
-      <div className="loginPage">
-        <form className="card" onSubmit={handleLogin}>
+      <div className="page">
+        <div className="card">
+
           <div className="logo">🩺</div>
 
-          <h1>Doctor Login</h1>
-          <p>Welcome to MediScan AI</p>
+          <h1>MediScan AI</h1>
 
-          <input
-            type="text"
-            placeholder="Enter Doctor Name"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+          <p>Doctor Secure Login Portal</p>
 
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <form onSubmit={handleLogin}>
 
-          <button type="submit">Login</button>
+            <input
+              type="text"
+              placeholder="Doctor ID"
+              value={doctorId}
+              onChange={(e)=>setDoctorId(e.target.value)}
+              required
+            />
+
+            <input
+              type="text"
+              placeholder="Doctor Name"
+              value={doctorName}
+              onChange={(e)=>setDoctorName(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              required
+            />
+
+            <button type="submit">
+              Login to Dashboard
+            </button>
+
+          </form>
 
           <div className="footer">
-            AI Powered Chest X-Ray Diagnosis
+            AI Powered Chest X-Ray Analysis System
           </div>
-        </form>
+
+        </div>
       </div>
     </>
   );

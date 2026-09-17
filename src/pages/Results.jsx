@@ -20,6 +20,7 @@ export default function Results() {
             justifyContent: "center",
             alignItems: "center",
             fontFamily: "Poppins, sans-serif",
+            background: "#F4F8FF",
           }}
         >
           <h2>No Result Found</h2>
@@ -30,193 +31,255 @@ export default function Results() {
 
   return (
     <>
+      <style>{`
+      *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family:Poppins,sans-serif;
+      }
+
+      body{
+        background:#F4F8FF;
+      }
+
+      .page{
+        min-height:100vh;
+        background:#F4F8FF;
+      }
+
+      .container{
+        max-width:1250px;
+        margin:auto;
+        padding:35px;
+      }
+
+      .title{
+        font-size:44px;
+        color:#111827;
+        font-weight:300;
+      }
+
+      .sub{
+        color:#4B5563;
+        margin-top:8px;
+        margin-bottom:28px;
+        font-size:18px;
+      }
+
+      .grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:22px;
+      }
+
+      .card{
+        background:white;
+        border-radius:20px;
+        padding:20px;
+        border:1px solid #DBEAFE;
+        box-shadow:0 8px 20px rgba(0,0,0,.06);
+      }
+
+      .card h2{
+        color:#111827;
+        margin-bottom:14px;
+        text-align:center;
+      }
+
+      .img{
+        width:100%;
+        height:430px;
+        object-fit:contain;
+        border-radius:14px;
+        background:#EEF4FF;
+      }
+
+      .summary{
+        margin-top:28px;
+        background:white;
+        border-radius:20px;
+        border:1px solid #DBEAFE;
+        overflow:hidden;
+      }
+
+      .summaryHeader{
+        padding:18px 22px;
+        background:#EFF6FF;
+        border-bottom:1px solid #DBEAFE;
+      }
+
+      .summaryHeader h2{
+        color:#111827;
+      }
+
+      .details{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:18px;
+        padding:24px;
+      }
+
+      .item{
+        background:#F8FBFF;
+        padding:18px;
+        border-radius:14px;
+      }
+
+      .label{
+        color:#64748B;
+        font-size:14px;
+      }
+
+      .value{
+        margin-top:6px;
+        color:#111827;
+        font-size:20px;
+        font-weight:600;
+      }
+
+      .normal{
+        color:#16A34A;
+      }
+
+      .alert{
+        color:#DC2626;
+      }
+
+      .pdf{
+        display:block;
+        width:calc(100% - 48px);
+        margin:0 auto 24px;
+        text-align:center;
+        text-decoration:none;
+        background:linear-gradient(90deg,#2563EB,#3B82F6);
+        color:white;
+        padding:16px;
+        border-radius:12px;
+        font-size:17px;
+        font-weight:600;
+      }
+
+      @media(max-width:900px){
+        .grid{
+          grid-template-columns:1fr;
+        }
+
+        .title{
+          font-size:36px;
+        }
+
+        .img{
+          height:330px;
+        }
+      }
+      `}</style>
+
       <Navbar />
 
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#F4F8FF",
-          padding: "35px",
-          fontFamily: "Poppins, sans-serif",
-          color: "#111827",
-        }}
-      >
-        <div style={{ maxWidth: "1200px", margin: "auto" }}>
-          <h1
-            style={{
-              fontSize: "42px",
-              marginBottom: "8px",
-              color: "#111827",
-            }}
-          >
+      <div className="page">
+        <div className="container">
+
+          <div className="title">
             AI Analysis Result
-          </h1>
+          </div>
 
-          <p
-            style={{
-              color: "#374151",
-              fontSize: "18px",
-              marginBottom: "28px",
-            }}
-          >
-            Patient: <b>{result.patient_name}</b> • {result.age} yrs •{" "}
-            {result.gender}
-          </p>
+          <div className="sub">
+            Patient: <b>{result.patient_name}</b> • {result.age} Years • {result.gender}
+          </div>
 
-          {/* Images */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))",
-              gap: "22px",
-            }}
-          >
-            {/* Original */}
-            <div
-              style={{
-                background: "white",
-                borderRadius: "18px",
-                padding: "18px",
-                border: "1px solid #DCE8FF",
-              }}
-            >
-              <h2 style={{ color: "#111827", marginBottom: "15px" }}>
-                Original X-Ray
-              </h2>
+          <div className="grid">
+
+            <div className="card">
+              <h2>Original Chest X-Ray</h2>
 
               <img
                 src={result.original_image}
                 alt="Original X-Ray"
-                style={{
-                  width: "100%",
-                  height: "420px",
-                  objectFit: "contain",
-                  borderRadius: "14px",
-                  background: "#EEF4FF",
-                }}
+                className="img"
               />
             </div>
 
-            {/* Heatmap */}
-            <div
-              style={{
-                background: "white",
-                borderRadius: "18px",
-                padding: "18px",
-                border: "1px solid #DCE8FF",
-              }}
-            >
-              <h2 style={{ color: "#111827", marginBottom: "15px" }}>
-                AI Heatmap
-              </h2>
+            <div className="card">
+              <h2>AI Heatmap Analysis</h2>
 
               <img
                 src={result.heatmap}
-                alt="AI Heatmap"
-                style={{
-                  width: "100%",
-                  height: "420px",
-                  objectFit: "contain",
-                  borderRadius: "14px",
-                  background: "#EEF4FF",
-                }}
-                onError={(e) => {
-                  e.target.src = result.original_image;
+                alt="Heatmap"
+                className="img"
+                onError={(e)=>{
+                  e.target.src=result.original_image;
                 }}
               />
             </div>
+
           </div>
 
-          {/* Summary */}
-          <div
-            style={{
-              marginTop: "28px",
-              background: "white",
-              borderRadius: "18px",
-              border: "1px solid #DCE8FF",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding: "18px 22px",
-                borderBottom: "1px solid #E5E7EB",
-              }}
-            >
-              <h2 style={{ color: "#111827" }}>Diagnosis Summary</h2>
+          <div className="summary">
+
+            <div className="summaryHeader">
+              <h2>Diagnosis Summary</h2>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
-                gap: "20px",
-                padding: "22px",
-              }}
-            >
-              <div>
-                <p style={{ color: "#6B7280", fontSize: "14px" }}>Doctor</p>
-                <h3 style={{ color: "#111827" }}>Dr. {result.username}</h3>
+            <div className="details">
+
+              <div className="item">
+                <div className="label">Doctor</div>
+                <div className="value">
+                  Dr. {result.username}
+                </div>
               </div>
 
-              <div>
-                <p style={{ color: "#6B7280", fontSize: "14px" }}>Prediction</p>
-                <h3
-                  style={{
-                    color:
-                      result.prediction === "Normal"
-                        ? "#16A34A"
-                        : "#DC2626",
-                  }}
-                >
+              <div className="item">
+                <div className="label">Patient</div>
+                <div className="value">
+                  {result.patient_name}
+                </div>
+              </div>
+
+              <div className="item">
+                <div className="label">Age</div>
+                <div className="value">
+                  {result.age}
+                </div>
+              </div>
+
+              <div className="item">
+                <div className="label">Gender</div>
+                <div className="value">
+                  {result.gender}
+                </div>
+              </div>
+
+              <div className="item">
+                <div className="label">Prediction</div>
+                <div className={`value ${
+                  result.prediction==="Normal" ? "normal":"alert"
+                }`}>
                   {result.prediction}
-                </h3>
+                </div>
               </div>
 
-              <div>
-                <p style={{ color: "#6B7280", fontSize: "14px" }}>Confidence</p>
-                <h3 style={{ color: "#111827" }}>{result.confidence}%</h3>
+              <div className="item">
+                <div className="label">Confidence</div>
+                <div className="value">
+                  {result.confidence}%
+                </div>
               </div>
 
-              <div>
-                <p style={{ color: "#6B7280", fontSize: "14px" }}>Patient</p>
-                <h3 style={{ color: "#111827" }}>{result.patient_name}</h3>
-              </div>
-
-              <div>
-                <p style={{ color: "#6B7280", fontSize: "14px" }}>Age</p>
-                <h3 style={{ color: "#111827" }}>{result.age}</h3>
-              </div>
-
-              <div>
-                <p style={{ color: "#6B7280", fontSize: "14px" }}>Gender</p>
-                <h3 style={{ color: "#111827" }}>{result.gender}</h3>
-              </div>
             </div>
 
-            {/* PDF Button */}
-            <div style={{ padding: "0 22px 22px" }}>
-              <a
-                href={result.pdf}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "center",
-                  background: "linear-gradient(90deg,#2563EB,#3B82F6)",
-                  color: "white",
-                  padding: "16px",
-                  borderRadius: "12px",
-                  textDecoration: "none",
-                  fontWeight: "600",
-                  fontSize: "17px",
-                }}
-              >
-                ⬇ Download PDF Report
-              </a>
-            </div>
+            <a
+              href={result.pdf}
+              target="_blank"
+              rel="noreferrer"
+              className="pdf"
+            >
+              📄 Download AI Medical Report
+            </a>
+
           </div>
+
         </div>
       </div>
     </>
