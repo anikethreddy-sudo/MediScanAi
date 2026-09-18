@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 
+const API = "https://mediscanai-backend-pzfz.onrender.com";
+
 export default function Results() {
   const [result, setResult] = useState(null);
 
@@ -109,10 +111,6 @@ export default function Results() {
         border-bottom:1px solid #DBEAFE;
       }
 
-      .summaryHeader h2{
-        color:#111827;
-      }
-
       .details{
         display:grid;
         grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -180,9 +178,7 @@ export default function Results() {
       <div className="page">
         <div className="container">
 
-          <div className="title">
-            AI Analysis Result
-          </div>
+          <div className="title">AI Analysis Result</div>
 
           <div className="sub">
             Patient: <b>{result.patient_name}</b> • {result.age} Years • {result.gender}
@@ -194,7 +190,7 @@ export default function Results() {
               <h2>Original Chest X-Ray</h2>
 
               <img
-                src={result.original_image}
+                src={`${API}${result.original_image}`}
                 alt="Original X-Ray"
                 className="img"
               />
@@ -204,11 +200,11 @@ export default function Results() {
               <h2>AI Heatmap Analysis</h2>
 
               <img
-                src={result.heatmap}
+                src={`${API}${result.heatmap}`}
                 alt="Heatmap"
                 className="img"
-                onError={(e)=>{
-                  e.target.src=result.original_image;
+                onError={(e) => {
+                  e.target.src = `${API}${result.original_image}`;
                 }}
               />
             </div>
@@ -225,58 +221,52 @@ export default function Results() {
 
               <div className="item">
                 <div className="label">Doctor</div>
-                <div className="value">
-                  Dr. {result.username}
-                </div>
+                <div className="value">Dr. {result.username}</div>
               </div>
 
               <div className="item">
                 <div className="label">Patient</div>
-                <div className="value">
-                  {result.patient_name}
-                </div>
+                <div className="value">{result.patient_name}</div>
               </div>
 
               <div className="item">
                 <div className="label">Age</div>
-                <div className="value">
-                  {result.age}
-                </div>
+                <div className="value">{result.age}</div>
               </div>
 
               <div className="item">
                 <div className="label">Gender</div>
-                <div className="value">
-                  {result.gender}
-                </div>
+                <div className="value">{result.gender}</div>
               </div>
 
               <div className="item">
                 <div className="label">Prediction</div>
-                <div className={`value ${
-                  result.prediction==="Normal" ? "normal":"alert"
-                }`}>
+                <div
+                  className={`value ${
+                    result.prediction === "Normal" ? "normal" : "alert"
+                  }`}
+                >
                   {result.prediction}
                 </div>
               </div>
 
               <div className="item">
                 <div className="label">Confidence</div>
-                <div className="value">
-                  {result.confidence}%
-                </div>
+                <div className="value">{result.confidence}%</div>
               </div>
 
             </div>
 
-            <a
-              href={result.pdf}
-              target="_blank"
-              rel="noreferrer"
-              className="pdf"
-            >
-              📄 Download AI Medical Report
-            </a>
+            {result.pdf && (
+              <a
+                href={`${API}${result.pdf}`}
+                target="_blank"
+                rel="noreferrer"
+                className="pdf"
+              >
+                📄 Download AI Medical Report
+              </a>
+            )}
 
           </div>
 
