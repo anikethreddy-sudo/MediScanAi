@@ -66,17 +66,16 @@ async def predict(
     x = preprocess_input(x)
     x = np.expand_dims(x, axis=0)
 
-    # AI Prediction
+    # Prediction
     pred = model.predict(x, verbose=0)
     prob = float(pred[0][0])
 
-    # IMPORTANT:
-    # Model output = Probability of NORMAL
+    # If your model outputs Pneumonia probability
     if prob >= 0.5:
-        prediction = "Normal"
+        prediction = "Pneumonia"
         confidence = round(prob * 100, 1)
     else:
-        prediction = "Pneumonia"
+        prediction = "Normal"
         confidence = round((1 - prob) * 100, 1)
 
     return {
