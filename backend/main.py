@@ -66,23 +66,18 @@ async def predict(
     x = preprocess_input(x)
     x = np.expand_dims(x, axis=0)
 
-    # Prediction
+    # AI Prediction
     pred = model.predict(x, verbose=0)
+    prob = float(pred[0][0])
 
-    # Supports both binary and 2-class models
-    if pred.shape[-1] == 2:
-        normal = float(pred[0][0])
-        pneumonia = float(pred[0][1])
-    else:
-        pneumonia = float(pred[0][0])
-        normal = 1.0 - pneumonia
-
-    if pneumonia > normal:
-        prediction = "Pneumonia"
-        confidence = round(pneumonia * 100, 1)
-    else:
+    # IMPORTANT:
+    # Model output = Probability of NORMAL
+    if prob >= 0.5:
         prediction = "Normal"
-        confidence = round(normal * 100, 1)
+        confidence = round(prob * 100, 1)
+    else:
+        prediction = "Pneumonia"
+        confidence = round((1 - prob) * 100, 1)
 
     return {
         "username": username,
