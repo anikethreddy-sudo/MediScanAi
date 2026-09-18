@@ -49,6 +49,7 @@ async def predict(
     gender: str = Form(...),
     file: UploadFile = File(...)
 ):
+    # Save uploaded image
     ext = file.filename.split(".")[-1]
     uid = str(uuid.uuid4())
 
@@ -58,7 +59,7 @@ async def predict(
     with open(image_path, "wb") as f:
         f.write(await file.read())
 
-    # Image preprocessing
+    # Read & preprocess image
     img = Image.open(image_path).convert("RGB")
     img = img.resize((224, 224))
 
@@ -66,11 +67,10 @@ async def predict(
     x = preprocess_input(x)
     x = np.expand_dims(x, axis=0)
 
-    # Prediction
-    pred = model.predict(x, verbose=0)
-    prob = float(pred[0][0])
+    # AI Prediction
+    prob = float(model.predict(x, verbose=0)[0][0])
 
-    # If your model outputs Pneumonia probability
+    # Model output = Pneumonia probability
     if prob >= 0.5:
         prediction = "Pneumonia"
         confidence = round(prob * 100, 1)
