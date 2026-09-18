@@ -7,6 +7,7 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import numpy as np
 import uuid
 import os
+import shutil
 
 # ---------------- APP ---------------- #
 app = FastAPI(title="MediScan AI")
@@ -49,17 +50,24 @@ async def predict(
     gender: str = Form(...),
     file: UploadFile = File(...)
 ):
-    # Save uploaded image
+    # ---------- Save Uploaded Image ----------
     ext = file.filename.split(".")[-1]
     uid = str(uuid.uuid4())
 
     filename = f"{uid}.{ext}"
+    heatmap_name = f"{uid}_heatmap.{ext}"
+
     image_path = os.path.join(UPLOAD_DIR, filename)
+    heatmap_path = os.path.join(UPLOAD_DIR, heatmap_name)
 
     with open(image_path, "wb") as f:
         f.write(await file.read())
 
-    # Read & preprocess image
+    # ---------- Create Heatmap File ----------
+    # (Temporary: copies the original image so Heatmap is never blank)
+    shutil.copy(image_path, heatmap_path)
+
+    # ---------- Preprocess ----------
     img = Image.open(image_path).convert("RGB")
     img = img.resize((224, 224))
 
@@ -67,10 +75,9 @@ async def predict(
     x = preprocess_input(x)
     x = np.expand_dims(x, axis=0)
 
-    # AI Prediction
+    # ---------- Prediction ----------
     prob = float(model.predict(x, verbose=0)[0][0])
 
-    # Model output = Pneumonia probability
     if prob >= 0.5:
         prediction = "Pneumonia"
         confidence = round(prob * 100, 1)
@@ -78,6 +85,7 @@ async def predict(
         prediction = "Normal"
         confidence = round((1 - prob) * 100, 1)
 
+    # ---------- Response ----------
     return {
         "username": username,
         "patient_name": patient_name,
@@ -86,6 +94,6 @@ async def predict(
         "prediction": prediction,
         "confidence": confidence,
         "original_image": f"/uploads/{filename}",
-        "heatmap": f"/uploads/{filename}",
+        "heatmap": f"/uploads/{heatmap_name}",
         "pdf": ""
     }
