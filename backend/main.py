@@ -2,11 +2,12 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
-import tf_keras as keras
+from tensorflow.keras.models import load_model
 import numpy as np
 import uuid
 import os
 
+# ---------------- APP ---------------- #
 app = FastAPI(title="MediScan AI")
 
 app.add_middleware(
@@ -17,21 +18,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-os.makedirs("uploads", exist_ok=True)
-os.makedirs("reports", exist_ok=True)
+# ---------------- PATHS ---------------- #
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-app.mount("/reports", StaticFiles(directory="reports"), name="reports")
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+REPORT_DIR = os.path.join(BASE_DIR, "reports")
+MODEL_PATH = os.path.join(BASE_DIR, "pneumonia_model.h5")
 
-MODEL_PATH = "pneumonia_model.h5"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(REPORT_DIR, exist_ok=True)
 
-# IMPORTANT: use tf_keras instead of keras 3
-model = keras.models.load_model(MODEL_PATH, compile=False)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app.mount("/reports", StaticFiles(directory=REPORT_DIR), name="reports")
 
+# ---------------- LOAD MODEL ---------------- #
+model = load_model(MODEL_PATH, compile=False)
+
+# ---------------- HOME ---------------- #
 @app.get("/")
 def home():
-    return {"message": "Welcome to MediScan AI 🚀"}
+    return {
+        "message": "Welcome to MediScan AI 🚀"
+    }
 
+# ---------------- PREDICT ---------------- #
 @app.post("/predict")
 async def predict(
     username: str = Form(...),
@@ -43,7 +53,8 @@ async def predict(
     ext = file.filename.split(".")[-1]
     uid = str(uuid.uuid4())
 
-    image_path = f"uploads/{uid}.{ext}"
+    filename = f"{uid}.{ext}"
+    image_path = os.path.join(UPLOAD_DIR, filename)
 
     with open(image_path, "wb") as f:
         f.write(await file.read())
@@ -54,7 +65,8 @@ async def predict(
     x = np.array(img, dtype=np.float32) / 255.0
     x = np.expand_dims(x, axis=0)
 
-    prob = float(model.predict(x, verbose=0)[0][0])
+    pred = model.predict(x, verbose=0)
+    prob = float(pred[0][0])
 
     if prob >= 0.5:
         prediction = "Pneumonia"
@@ -70,7 +82,7 @@ async def predict(
         "gender": gender,
         "prediction": prediction,
         "confidence": confidence,
-        "original_image": image_path,
-        "heatmap": image_path,
+        "original_image": f"/uploads/{filename}",
+        "heatmap": f"/uploads/{filename}",
         "pdf": ""
     }
