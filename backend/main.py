@@ -23,6 +23,7 @@ app.add_middleware(
 
 # ---------------- PATHS ---------------- #
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 REPORT_DIR = os.path.join(BASE_DIR, "reports")
 MODEL_PATH = os.path.join(BASE_DIR, "pneumonia_model.keras")
@@ -36,10 +37,10 @@ app.mount("/reports", StaticFiles(directory=REPORT_DIR), name="reports")
 # ---------------- LOAD MODEL ---------------- #
 model = load_model(MODEL_PATH, compile=False)
 
-# Last Conv layer of MobileNetV2
+# Last convolution layer of MobileNetV2
 LAST_CONV_LAYER = "Conv_1"
 
-# ---------------- GRAD CAM ---------------- #
+# ---------------- GRAD-CAM ---------------- #
 def generate_gradcam(img_array, original_path, save_path):
 
     grad_model = Model(
@@ -47,7 +48,7 @@ def generate_gradcam(img_array, original_path, save_path):
         outputs=[
             model.get_layer(LAST_CONV_LAYER).output,
             model.output
-        ],
+        ]
     )
 
     with tf.GradientTape() as tape:
@@ -55,33 +56,38 @@ def generate_gradcam(img_array, original_path, save_path):
         loss = predictions[:, 0]
 
     grads = tape.gradient(loss, conv_outputs)
-    pooled_grads = tf.reduce_mean(grads, axis=(0,1,2))
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
 
     conv_outputs = conv_outputs[0]
     heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]
     heatmap = tf.squeeze(heatmap)
 
     heatmap = tf.maximum(heatmap, 0)
-    heatmap = heatmap / tf.reduce_max(heatmap)
+
+    max_val = tf.reduce_max(heatmap)
+    if max_val > 0:
+        heatmap = heatmap / max_val
 
     heatmap = heatmap.numpy()
 
     original = cv2.imread(original_path)
-    original = cv2.resize(original, (224,224))
+    original = cv2.resize(original, (224, 224))
 
-    heatmap = cv2.resize(heatmap, (224,224))
+    heatmap = cv2.resize(heatmap, (224, 224))
     heatmap = np.uint8(255 * heatmap)
 
-    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+    colored = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
 
-    superimposed = cv2.addWeighted(original, 0.55, heatmap, 0.45, 0)
+    result = cv2.addWeighted(original, 0.55, colored, 0.45, 0)
 
-    cv2.imwrite(save_path, superimposed)
+    cv2.imwrite(save_path, result)
+
 
 # ---------------- HOME ---------------- #
 @app.get("/")
 def home():
-    return {"message":"Welcome to MediScan AI 🚀"}
+    return {"message": "Welcome to MediScan AI 🚀"}
+
 
 # ---------------- PREDICT ---------------- #
 @app.post("/predict")
@@ -102,29 +108,32 @@ async def predict(
     image_path = os.path.join(UPLOAD_DIR, filename)
     heatmap_path = os.path.join(UPLOAD_DIR, heatmap_name)
 
+    # Save uploaded image
     with open(image_path, "wb") as f:
         f.write(await file.read())
 
+    # Preprocess
     img = Image.open(image_path).convert("RGB")
-    img = img.resize((224,224))
+    img = img.resize((224, 224))
 
     x = np.array(img, dtype=np.float32)
     x = preprocess_input(x)
     x = np.expand_dims(x, axis=0)
 
-    # Prediction
+    # AI Prediction
     prob = float(model.predict(x, verbose=0)[0][0])
 
     if prob >= 0.5:
         prediction = "Pneumonia"
-        confidence = round(prob*100,1)
+        confidence = round(prob * 100, 1)
     else:
         prediction = "Normal"
-        confidence = round((1-prob)*100,1)
+        confidence = round((1 - prob) * 100, 1)
 
-    # Generate REAL AI Heatmap
+    # Generate AI Heatmap
     generate_gradcam(x, image_path, heatmap_path)
 
+    # Response
     return {
         "username": username,
         "patient_name": patient_name,
