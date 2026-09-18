@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API = "https://mediscanai-bb2m.onrender.com";
+const API = "https://mediscanai-backend-pzfz.onrender.com";
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -38,6 +38,8 @@ export default function Upload() {
         method: "POST",
         body: formData,
       });
+
+      if (!res.ok) throw new Error("Server Error");
 
       const data = await res.json();
 
@@ -84,7 +86,7 @@ export default function Upload() {
         }
 
         .left h1{
-          color:#FFFFFF;
+          color:#fff;
           font-size:52px;
           font-weight:300;
           line-height:1.2;
@@ -102,9 +104,8 @@ export default function Upload() {
           margin-top:22px;
           padding:10px 18px;
           border-radius:30px;
-          color:#FFFFFF;
+          color:#fff;
           background:rgba(255,255,255,.15);
-          backdrop-filter:blur(8px);
         }
 
         .previewBox{
@@ -157,16 +158,15 @@ export default function Upload() {
           box-shadow:0 20px 45px rgba(0,0,0,.18);
         }
 
-        /* BLACK FONT FIXED */
         .title{
           font-size:30px;
-          color:#111827 !important;
+          color:#111827;
           font-weight:600;
           margin-bottom:8px;
         }
 
         .sub{
-          color:#64748B !important;
+          color:#64748B;
           margin-bottom:22px;
         }
 
@@ -180,14 +180,6 @@ export default function Upload() {
           outline:none;
           color:#111827;
           background:white;
-        }
-
-        input::placeholder{
-          color:#6B7280;
-        }
-
-        input:focus,select:focus{
-          border-color:#2563EB;
         }
 
         .uploadBox{
@@ -246,16 +238,16 @@ export default function Upload() {
             <div className="left">
               <h1>
                 AI Powered
-                <br/>
+                <br />
                 Chest X-Ray
-                <br/>
+                <br />
                 Analysis
               </h1>
 
               <p>
                 Upload a patient's chest X-ray and let MediScan AI generate
-                an explainable heatmap, confidence score and downloadable
-                medical report within seconds.
+                an explainable heatmap, confidence score and medical report
+                within seconds.
               </p>
 
               <div className="doctor">
@@ -282,7 +274,6 @@ export default function Upload() {
             </div>
 
             <div className="right">
-
               <div className="title">Upload New Scan</div>
 
               <div className="sub">
@@ -295,7 +286,7 @@ export default function Upload() {
                   type="text"
                   placeholder="Patient Name"
                   value={patientName}
-                  onChange={(e)=>setPatientName(e.target.value)}
+                  onChange={(e) => setPatientName(e.target.value)}
                   required
                 />
 
@@ -303,20 +294,20 @@ export default function Upload() {
                   type="number"
                   placeholder="Age"
                   value={age}
-                  onChange={(e)=>setAge(e.target.value)}
+                  onChange={(e) => setAge(e.target.value)}
                   required
                 />
 
                 <select
                   value={gender}
-                  onChange={(e)=>setGender(e.target.value)}
+                  onChange={(e) => setGender(e.target.value)}
                 >
                   <option>Male</option>
                   <option>Female</option>
                 </select>
 
                 <div className="uploadBox">
-                  <div style={{fontSize:"50px"}}>📤</div>
+                  <div style={{ fontSize: "50px" }}>📤</div>
 
                   <p>Choose Chest X-Ray Image</p>
 
@@ -324,26 +315,22 @@ export default function Upload() {
                     type="file"
                     accept="image/*"
                     required
-                    onChange={(e)=>{
+                    onChange={(e) => {
                       const img = e.target.files[0];
                       setFile(img);
 
-                      if(img){
+                      if (img) {
                         setPreview(URL.createObjectURL(img));
                       }
                     }}
                   />
                 </div>
 
-                <button
-                  className="btn"
-                  disabled={loading}
-                >
+                <button className="btn" disabled={loading}>
                   {loading ? "Analyzing..." : "Analyze X-Ray"}
                 </button>
 
               </form>
-
             </div>
 
           </div>

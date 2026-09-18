@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 
-const API = "https://mediscanai-bb2m.onrender.com";
+const API = "https://https://mediscanai-backend-pzfz.onrender.com";
 
 export default function AdminDashboard() {
   const [scans, setScans] = useState([]);
