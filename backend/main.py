@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import numpy as np
 import uuid
 import os
@@ -24,6 +25,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 REPORT_DIR = os.path.join(BASE_DIR, "reports")
 MODEL_PATH = os.path.join(BASE_DIR, "pneumonia_model.keras")
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(REPORT_DIR, exist_ok=True)
 
@@ -36,9 +38,7 @@ model = load_model(MODEL_PATH, compile=False)
 # ---------------- HOME ---------------- #
 @app.get("/")
 def home():
-    return {
-        "message": "Welcome to MediScan AI 🚀"
-    }
+    return {"message": "Welcome to MediScan AI 🚀"}
 
 # ---------------- PREDICT ---------------- #
 @app.post("/predict")
@@ -58,21 +58,31 @@ async def predict(
     with open(image_path, "wb") as f:
         f.write(await file.read())
 
+    # Image preprocessing
     img = Image.open(image_path).convert("RGB")
     img = img.resize((224, 224))
 
-    x = np.array(img, dtype=np.float32) / 255.0
+    x = np.array(img, dtype=np.float32)
+    x = preprocess_input(x)
     x = np.expand_dims(x, axis=0)
 
+    # Prediction
     pred = model.predict(x, verbose=0)
-    prob = float(pred[0][0])
 
-    if prob >= 0.5:
+    # Supports both binary and 2-class models
+    if pred.shape[-1] == 2:
+        normal = float(pred[0][0])
+        pneumonia = float(pred[0][1])
+    else:
+        pneumonia = float(pred[0][0])
+        normal = 1.0 - pneumonia
+
+    if pneumonia > normal:
         prediction = "Pneumonia"
-        confidence = round(prob * 100, 1)
+        confidence = round(pneumonia * 100, 1)
     else:
         prediction = "Normal"
-        confidence = round((1 - prob) * 100, 1)
+        confidence = round(normal * 100, 1)
 
     return {
         "username": username,
