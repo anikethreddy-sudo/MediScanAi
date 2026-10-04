@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API = "http://127.0.0.1:8000";
+const API = "http://https://mediscanai-backend-pzfz.onrender.com";
 
 export default function Results() {
 
