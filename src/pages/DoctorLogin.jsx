@@ -19,6 +19,7 @@ export default function DoctorLogin() {
     // Save doctor session
     localStorage.setItem("doctorId", doctorId);
     localStorage.setItem("doctorName", doctorName);
+    localStorage.setItem("currentDoctorKey", doctorId);
     localStorage.setItem("isLoggedIn", "true");
 
     navigate("/dashboard");
@@ -132,7 +133,9 @@ export default function DoctorLogin() {
               type="text"
               placeholder="Doctor ID"
               value={doctorId}
-              onChange={(e)=>setDoctorId(e.target.value)}
+              onChange={(e) =>
+                setDoctorId(e.target.value)
+              }
               required
             />
 
@@ -140,7 +143,9 @@ export default function DoctorLogin() {
               type="text"
               placeholder="Doctor Name"
               value={doctorName}
-              onChange={(e)=>setDoctorName(e.target.value)}
+              onChange={(e) =>
+                setDoctorName(e.target.value)
+              }
               required
             />
 
@@ -148,7 +153,9 @@ export default function DoctorLogin() {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               required
             />
 

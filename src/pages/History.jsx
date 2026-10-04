@@ -1,373 +1,484 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API = "https://https://mediscanai-backend-pzfz.onrender.com";
-
 export default function History() {
-  const [history, setHistory] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(null);
 
-  const doctor = localStorage.getItem("doctorName") || "Doctor";
+  const navigate = useNavigate();
+
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    fetch(`${API}/history/${doctor}`)
-      .then((res) => res.json())
-      .then((data) => setHistory(data))
-      .catch((err) => console.log(err));
-  }, [doctor]);
 
-  const filtered = history.filter((item) =>
-    item.patient_name.toLowerCase().includes(search.toLowerCase())
-  );
+    // ============================================================
+    // GET CURRENT DOCTOR
+    // ============================================================
+
+    const doctorId =
+      localStorage.getItem("doctorId") ||
+      "unknown";
+
+
+    // ============================================================
+    // CREATE DOCTOR-SPECIFIC HISTORY KEY
+    // ============================================================
+
+    const historyKey =
+      `scanHistory_${doctorId}`;
+
+
+    // ============================================================
+    // LOAD ONLY CURRENT DOCTOR'S HISTORY
+    // ============================================================
+
+    const savedHistory = JSON.parse(
+      localStorage.getItem(
+        historyKey
+      ) || "[]"
+    );
+
+
+    setHistory(
+      Array.isArray(savedHistory)
+        ? savedHistory
+        : []
+    );
+
+  }, []);
+
+
+  // ============================================================
+  // OPEN RESULT
+  // ============================================================
+
+  const openResult = (item) => {
+
+    localStorage.setItem(
+      "result",
+      JSON.stringify(item)
+    );
+
+    navigate("/results");
+  };
+
+
+  // ============================================================
+  // CLEAR CURRENT DOCTOR'S HISTORY
+  // ============================================================
+
+  const clearHistory = () => {
+
+    const confirmDelete =
+      window.confirm(
+        "Are you sure you want to clear all scan history?"
+      );
+
+
+    if (!confirmDelete) {
+      return;
+    }
+
+
+    // ----------------------------------------------------------
+    // GET CURRENT DOCTOR
+    // ----------------------------------------------------------
+
+    const doctorId =
+      localStorage.getItem("doctorId") ||
+      "unknown";
+
+
+    // ----------------------------------------------------------
+    // CURRENT DOCTOR'S HISTORY KEY
+    // ----------------------------------------------------------
+
+    const historyKey =
+      `scanHistory_${doctorId}`;
+
+
+    // ----------------------------------------------------------
+    // DELETE ONLY CURRENT DOCTOR'S HISTORY
+    // ----------------------------------------------------------
+
+    localStorage.removeItem(
+      historyKey
+    );
+
+
+    setHistory([]);
+
+  };
+
 
   return (
     <>
       <style>{`
-      *{
-        margin:0;
-        padding:0;
-        box-sizing:border-box;
-        font-family:Poppins,sans-serif;
-      }
 
-      body{
-        background:#EEF4FF;
-      }
-
-      .page{
-        min-height:100vh;
-        background:#EEF4FF;
-      }
-
-      .container{
-        max-width:1400px;
-        margin:auto;
-        padding:35px;
-      }
-
-      h1{
-        font-size:56px;
-        font-weight:300;
-        color:#111827;
-      }
-
-      .doctor{
-        font-size:24px;
-        color:#111827 !important;
-        margin:12px 0 28px;
-        font-weight:500;
-      }
-
-      .doctor b{
-        color:#111827 !important;
-      }
-
-      .search{
-        width:340px;
-        padding:14px 18px;
-        border-radius:12px;
-        border:1px solid #CBD5E1;
-        font-size:16px;
-        margin-bottom:20px;
-        outline:none;
-        color:#111827;
-      }
-
-      table{
-        width:100%;
-        border-collapse:collapse;
-        background:white;
-        border-radius:16px;
-        overflow:hidden;
-      }
-
-      thead{
-        background:#2563EB;
-        color:white;
-      }
-
-      thead th{
-        color:white;
-      }
-
-      th,td{
-        padding:15px;
-        text-align:center;
-      }
-
-      tbody tr{
-        border-bottom:1px solid #E5E7EB;
-      }
-
-      tbody tr:hover{
-        background:#F8FAFC;
-      }
-
-      td{
-        color:#111827;
-      }
-
-      .normal{
-        color:#16A34A;
-        font-weight:600;
-      }
-
-      .alert{
-        color:#DC2626;
-        font-weight:600;
-      }
-
-      .viewBtn{
-        background:#1D4ED8;
-        color:white;
-        border:none;
-        padding:9px 18px;
-        border-radius:8px;
-        cursor:pointer;
-      }
-
-      .overlay{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.45);
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        z-index:999;
-        padding:20px;
-      }
-
-      .modal{
-        width:900px;
-        max-width:100%;
-        max-height:90vh;
-        overflow-y:auto;
-        background:white;
-        border-radius:22px;
-        padding:28px;
-      }
-
-      .modal h2{
-        color:#111827;
-        margin-bottom:18px;
-      }
-
-      .details{
-        color:#111827;
-        line-height:34px;
-        font-size:17px;
-      }
-
-      .details b{
-        color:#111827;
-      }
-
-      .grid{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:20px;
-        margin-top:25px;
-      }
-
-      .card{
-        background:#F8FBFF;
-        border-radius:14px;
-        padding:14px;
-      }
-
-      .card h3{
-        text-align:center;
-        color:#111827;
-        margin-bottom:10px;
-      }
-
-      .img{
-        width:100%;
-        height:320px;
-        object-fit:contain;
-        background:#E5E7EB;
-        border-radius:12px;
-      }
-
-      .pdfBtn{
-        display:block;
-        width:100%;
-        text-align:center;
-        text-decoration:none;
-        margin-top:20px;
-        background:#16A34A;
-        color:white;
-        padding:14px;
-        border-radius:12px;
-        font-weight:600;
-      }
-
-      .closeBtn{
-        width:100%;
-        margin-top:15px;
-        padding:14px;
-        border:none;
-        border-radius:12px;
-        background:#2563EB;
-        color:white;
-        font-size:16px;
-        cursor:pointer;
-      }
-
-      .empty{
-        margin-top:30px;
-        color:#64748B;
-        font-size:22px;
-      }
-
-      @media(max-width:768px){
-        .grid{
-          grid-template-columns:1fr;
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: Poppins, sans-serif;
         }
 
-        h1{
-          font-size:42px;
+        body {
+          background: #EEF4FF;
         }
 
-        .search{
-          width:100%;
+        .historyPage {
+          min-height: 100vh;
+          background: #EEF4FF;
         }
-      }
+
+        .historyContainer {
+          max-width: 1250px;
+          margin: auto;
+          padding: 40px 25px;
+        }
+
+        .headerRow {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+        }
+
+        .heading {
+          color: #102A56;
+          font-size: 36px;
+          font-weight: 300;
+        }
+
+        .subtitle {
+          color: #64748B;
+          margin-top: 8px;
+          font-size: 16px;
+        }
+
+        .clearButton {
+          border: none;
+          background: #EF4444;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 300;
+          cursor: pointer;
+        }
+
+        .emptyBox {
+          background: white;
+          border-radius: 20px;
+          padding: 70px 30px;
+          text-align: center;
+          box-shadow:
+            0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        .emptyIcon {
+          font-size: 65px;
+          margin-bottom: 15px;
+        }
+
+        .emptyTitle {
+          color: #102A56;
+          font-size: 24px;
+          font-weight: 300;
+        }
+
+        .emptyText {
+          color: #64748B;
+          margin-top: 10px;
+        }
+
+        .historyGrid {
+          display: grid;
+          grid-template-columns:
+            repeat(2, 1fr);
+          gap: 22px;
+        }
+
+        .historyCard {
+          background: white;
+          border-radius: 20px;
+          padding: 22px;
+          box-shadow:
+            0 10px 30px rgba(0,0,0,0.06);
+          border: 1px solid #E2E8F0;
+        }
+
+        .cardTop {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 18px;
+        }
+
+        .patientName {
+          color: #102A56;
+          font-size: 21px;
+          font-weight: 300;
+        }
+
+        .resultBadge {
+          padding: 7px 13px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 300;
+        }
+
+        .normal {
+          background: #DCFCE7;
+          color: #15803D;
+        }
+
+        .pneumonia {
+          background: #FEE2E2;
+          color: #DC2626;
+        }
+
+        .details {
+          display: grid;
+          grid-template-columns:
+            repeat(3, 1fr);
+          gap: 12px;
+          margin-bottom: 18px;
+        }
+
+        .detailBox {
+          background: #F8FAFC;
+          border-radius: 12px;
+          padding: 12px;
+        }
+
+        .detailLabel {
+          color: #94A3B8;
+          font-size: 12px;
+          margin-bottom: 4px;
+        }
+
+        .detailValue {
+          color: #334155;
+          font-size: 15px;
+          font-weight: 300;
+        }
+
+        .confidence {
+          color: #475569;
+          margin-bottom: 8px;
+        }
+
+        .date {
+          color: #94A3B8;
+          font-size: 13px;
+          margin-bottom: 18px;
+        }
+
+        .viewButton {
+          width: 100%;
+          border: none;
+          background:
+            linear-gradient(
+              90deg,
+              #2563EB,
+              #38BDF8
+            );
+          color: white;
+          padding: 13px;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 300;
+          cursor: pointer;
+        }
+
+        @media(max-width: 800px) {
+
+          .historyGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .headerRow {
+            align-items: flex-start;
+            gap: 20px;
+            flex-direction: column;
+          }
+
+        }
+
+        @media(max-width: 500px) {
+
+          .details {
+            grid-template-columns: 1fr;
+          }
+
+        }
+
       `}</style>
 
-      <Navbar />
+      <div className="historyPage">
 
-      <div className="page">
-        <div className="container">
-          <h1>Scan History</h1>
+        <Navbar />
 
-          <div className="doctor">
-            Doctor: <b>Dr. {doctor}</b>
+        <div className="historyContainer">
+
+          <div className="headerRow">
+
+            <div>
+
+              <div className="heading">
+                Scan History
+              </div>
+
+              <div className="subtitle">
+                View previously analyzed patient scans
+              </div>
+
+            </div>
+
+            {history.length > 0 && (
+
+              <button
+                className="clearButton"
+                onClick={clearHistory}
+              >
+                Clear History
+              </button>
+
+            )}
+
           </div>
 
-          <input
-            className="search"
-            placeholder="🔍 Search patient name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          {history.length === 0 ? (
 
-          {filtered.length === 0 ? (
-            <div className="empty">No scans found.</div>
+            <div className="emptyBox">
+
+              <div className="emptyIcon">
+                🩻
+              </div>
+
+              <div className="emptyTitle">
+                No Scan History
+              </div>
+
+              <div className="emptyText">
+                Analyze a chest X-Ray
+                to see it here.
+              </div>
+
+            </div>
+
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Patient</th>
-                  <th>Age</th>
-                  <th>Gender</th>
-                  <th>Prediction</th>
-                  <th>Confidence</th>
-                  <th>Date</th>
-                  <th>View</th>
-                </tr>
-              </thead>
 
-              <tbody>
-                {filtered.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.patient_name}</td>
-                    <td>{item.age}</td>
-                    <td>{item.gender}</td>
+            <div className="historyGrid">
 
-                    <td
-                      className={
-                        item.prediction === "Normal" ? "normal" : "alert"
+              {history.map(
+                (item, index) => (
+
+                  <div
+                    className="historyCard"
+                    key={index}
+                  >
+
+                    <div className="cardTop">
+
+                      <div className="patientName">
+                        {item.patient_name}
+                      </div>
+
+                      <div
+                        className={
+                          `resultBadge ${
+                            item.prediction ===
+                            "Pneumonia"
+                              ? "pneumonia"
+                              : "normal"
+                          }`
+                        }
+                      >
+                        {item.prediction}
+                      </div>
+
+                    </div>
+
+                    <div className="details">
+
+                      <div className="detailBox">
+
+                        <div className="detailLabel">
+                          Age
+                        </div>
+
+                        <div className="detailValue">
+                          {item.age}
+                        </div>
+
+                      </div>
+
+                      <div className="detailBox">
+
+                        <div className="detailLabel">
+                          Gender
+                        </div>
+
+                        <div className="detailValue">
+                          {item.gender}
+                        </div>
+
+                      </div>
+
+                      <div className="detailBox">
+
+                        <div className="detailLabel">
+                          Doctor
+                        </div>
+
+                        <div className="detailValue">
+                          {item.username}
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    <div className="confidence">
+
+                      Model Confidence:{" "}
+
+                      <strong style={{ fontWeight: 300 }}>
+                        {item.confidence}%
+                      </strong>
+
+                    </div>
+
+                    {item.scan_date && (
+
+                      <div className="date">
+                        {item.scan_date}
+                      </div>
+
+                    )}
+
+                    <button
+                      className="viewButton"
+                      onClick={() =>
+                        openResult(item)
                       }
                     >
-                      {item.prediction}
-                    </td>
+                      View Full Result
+                    </button>
 
-                    <td>{item.confidence}%</td>
+                  </div>
 
-                    <td>{item.date}</td>
+                )
+              )}
 
-                    <td>
-                      <button
-                        className="viewBtn"
-                        onClick={() => setSelected(item)}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            </div>
+
           )}
+
         </div>
+
       </div>
-
-      {selected && (
-        <div className="overlay" onClick={() => setSelected(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🩺 Patient Details</h2>
-
-            <div className="details">
-              <b>Name:</b> {selected.patient_name}
-              <br />
-              <b>Age:</b> {selected.age}
-              <br />
-              <b>Gender:</b> {selected.gender}
-              <br />
-              <b>Doctor:</b> Dr. {selected.username}
-              <br />
-              <b>Prediction:</b> {selected.prediction}
-              <br />
-              <b>Confidence:</b> {selected.confidence}%
-              <br />
-              <b>Date:</b> {selected.date}
-            </div>
-
-            <div className="grid">
-              <div className="card">
-                <h3>Original X-Ray</h3>
-
-                <img
-                  src={selected.original_image}
-                  alt="Original X-Ray"
-                  className="img"
-                />
-              </div>
-
-              <div className="card">
-                <h3>AI Heatmap</h3>
-
-                <img
-                  src={selected.heatmap}
-                  alt="AI Heatmap"
-                  className="img"
-                  onError={(e) => {
-                    e.target.src = selected.original_image;
-                  }}
-                />
-              </div>
-            </div>
-
-            <a
-              href={selected.pdf}
-              target="_blank"
-              rel="noreferrer"
-              className="pdfBtn"
-            >
-              📄 Download Medical Report (PDF)
-            </a>
-
-            <button
-              className="closeBtn"
-              onClick={() => setSelected(null)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

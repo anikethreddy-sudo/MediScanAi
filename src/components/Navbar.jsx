@@ -4,18 +4,48 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const doctor = localStorage.getItem("doctorName") || "Doctor";
+  const doctor =
+    localStorage.getItem("doctorName") || "Doctor";
 
   const logout = () => {
+
+    // ============================================================
+    // REMOVE CURRENT LOGIN SESSION
+    // ============================================================
+
     localStorage.removeItem("doctorName");
     localStorage.removeItem("doctorId");
     localStorage.removeItem("isLoggedIn");
+
+
+    // ============================================================
+    // REMOVE CURRENT RESULT
+    // ============================================================
+
     localStorage.removeItem("result");
+
+
+    // ============================================================
+    // REMOVE OLD SESSION KEY IF IT EXISTS
+    // DO NOT REMOVE scanHistory_* KEYS
+    // ============================================================
+
+    localStorage.removeItem("currentDoctorKey");
+
+
+    // ============================================================
+    // GO TO LOGIN
+    // ============================================================
+
     navigate("/login");
   };
 
+
   const active = (path) =>
-    location.pathname === path ? "active link" : "link";
+    location.pathname === path
+      ? "active link"
+      : "link";
+
 
   return (
     <>
@@ -142,36 +172,73 @@ export default function Navbar() {
       `}</style>
 
       <nav className="nav">
-        <Link to="/dashboard" className="brand">
-          <div className="logo">🩺</div>
-          <div className="title">MediScan AI</div>
+
+        <Link
+          to="/dashboard"
+          className="brand"
+        >
+          <div className="logo">
+            🩺
+          </div>
+
+          <div className="title">
+            MediScan AI
+          </div>
         </Link>
 
+
         <div className="menu">
-          <Link className={active("/dashboard")} to="/dashboard">
+
+          <Link
+            className={active("/dashboard")}
+            to="/dashboard"
+          >
             Dashboard
           </Link>
 
-          <Link className={active("/upload")} to="/upload">
+
+          <Link
+            className={active("/upload")}
+            to="/upload"
+          >
             Upload
           </Link>
 
-          <Link className={active("/history")} to="/history">
+
+          <Link
+            className={active("/history")}
+            to="/history"
+          >
             History
           </Link>
 
-          <Link className={active("/results")} to="/results">
+
+          <Link
+            className={active("/results")}
+            to="/results"
+          >
             Results
           </Link>
+
         </div>
+
 
         <div className="right">
-          <div className="doctor">👨‍⚕️ Dr. {doctor}</div>
 
-          <button className="logout" onClick={logout}>
+          <div className="doctor">
+            👨‍⚕️ Dr. {doctor}
+          </div>
+
+
+          <button
+            className="logout"
+            onClick={logout}
+          >
             Logout
           </button>
+
         </div>
+
       </nav>
     </>
   );
