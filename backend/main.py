@@ -24,6 +24,25 @@ app = FastAPI(
 
 
 # ============================================================
+# CORS
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5176",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5176",
+        "https://mediscanai-frontend.onrender.com",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============================================================
 # DIRECTORIES
 # ============================================================
 
@@ -219,7 +238,6 @@ def generate_gradcam(
         0
     )
 
-
     heatmap = heatmap.numpy()
 
 
@@ -333,7 +351,6 @@ def generate_gradcam(
         0.75
     )
 
-
     heatmap = np.clip(
         heatmap,
         0,
@@ -352,7 +369,6 @@ def generate_gradcam(
         np.uint8
     )
 
-
     colored_heatmap = cv2.applyColorMap(
         heatmap_uint8,
         cv2.COLORMAP_JET
@@ -368,7 +384,6 @@ def generate_gradcam(
         heatmap *
         0.55
     )
-
 
     alpha = np.clip(
         alpha,
@@ -591,7 +606,6 @@ async def predict(
                 image_path
             )
 
-
         return {
 
             "error":
@@ -776,22 +790,3 @@ async def predict(
             )
 
     }
-
-
-# ============================================================
-# CORS
-# ============================================================
-
-app = CORSMiddleware(
-    app=app,
-    allow_origins=[
-        "https://mediscanai-frontend.onrender.com",
-        "http://localhost:5173",
-        "http://localhost:5176",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5176",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
