@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API = "http://https://mediscanai-backend-pzfz.onrender.com";
+const API = "https://mediscanai-backend-pzfz.onrender.com";
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -78,17 +78,11 @@ export default function Upload() {
         throw new Error(data.error);
       }
 
-      /*
-       * Save latest result
-       */
       localStorage.setItem(
         "result",
         JSON.stringify(data)
       );
 
-      /*
-       * Save scan to THIS DOCTOR'S history
-       */
       const historyKey =
         `scanHistory_${doctorId}`;
 
@@ -114,9 +108,6 @@ export default function Upload() {
         JSON.stringify(newHistory)
       );
 
-      /*
-       * Open results
-       */
       navigate("/results");
 
     } catch (error) {
@@ -126,7 +117,9 @@ export default function Upload() {
       );
 
       alert(
-        "Backend connection failed! Make sure FastAPI is running."
+        `Backend connection failed: ${
+          error.message
+        }`
       );
 
     } finally {
@@ -137,6 +130,7 @@ export default function Upload() {
   return (
     <>
       <style>{`
+
         * {
           margin: 0;
           padding: 0;
@@ -312,6 +306,7 @@ export default function Upload() {
         }
 
         @media(max-width: 900px) {
+
           .hero {
             grid-template-columns: 1fr;
           }
@@ -324,7 +319,9 @@ export default function Upload() {
           .left h1 {
             font-size: 40px;
           }
+
         }
+
       `}</style>
 
       <div className="page">
@@ -425,6 +422,7 @@ export default function Upload() {
                     setGender(e.target.value)
                   }
                 >
+
                   <option>
                     Male
                   </option>
@@ -432,6 +430,7 @@ export default function Upload() {
                   <option>
                     Female
                   </option>
+
                 </select>
 
                 <div className="uploadBox">
@@ -468,6 +467,7 @@ export default function Upload() {
                             selectedFile
                           )
                         );
+
                       }
 
                     }}
@@ -479,9 +479,11 @@ export default function Upload() {
                   className="btn"
                   disabled={loading}
                 >
+
                   {loading
                     ? "Analyzing..."
                     : "Analyze X-Ray"}
+
                 </button>
 
               </form>

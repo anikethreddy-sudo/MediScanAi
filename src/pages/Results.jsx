@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API = "http://https://mediscanai-backend-pzfz.onrender.com";
+const API = "https://mediscanai-backend-pzfz.onrender.com";
 
 export default function Results() {
 
@@ -26,33 +26,104 @@ export default function Results() {
 
   });
 
-
   const getImageUrl = (path) => {
 
     if (!path) {
       return "";
     }
 
+    let cleanPath =
+      String(path).trim();
+
+    /*
+     * Already a complete HTTPS URL
+     */
     if (
-      path.startsWith("http://") ||
-      path.startsWith("https://")
+      cleanPath.startsWith(
+        "https://"
+      )
     ) {
 
-      return path;
+      return cleanPath;
 
     }
 
-    return `${API}${path}`;
+    /*
+     * Convert HTTP backend URL
+     * to HTTPS for production.
+     */
+    if (
+      cleanPath.startsWith(
+        "http://"
+      )
+    ) {
+
+      return cleanPath.replace(
+        "http://",
+        "https://"
+      );
+
+    }
+
+    /*
+     * Fix malformed URL:
+     * https//example.com/...
+     */
+    if (
+      cleanPath.startsWith(
+        "https//"
+      )
+    ) {
+
+      cleanPath =
+        `https://${cleanPath.substring(7)}`;
+
+      return cleanPath;
+
+    }
+
+    /*
+     * Fix malformed URL:
+     * http//example.com/...
+     */
+    if (
+      cleanPath.startsWith(
+        "http//"
+      )
+    ) {
+
+      cleanPath =
+        `https://${cleanPath.substring(6)}`;
+
+      return cleanPath;
+
+    }
+
+    /*
+     * Backend-relative path
+     * Example:
+     * /uploads/image.png
+     */
+    if (
+      cleanPath.startsWith("/")
+    ) {
+
+      return `${API}${cleanPath}`;
+
+    }
+
+    /*
+     * Relative path without /
+     */
+    return `${API}/${cleanPath}`;
 
   };
-
 
   const downloadPDF = () => {
 
     window.print();
 
   };
-
 
   if (!result) {
 
@@ -98,14 +169,11 @@ export default function Results() {
 
   }
 
-
   const prediction =
     result.prediction || "Unknown";
 
-
   const confidence =
     result.confidence ?? 0;
-
 
   const pneumoniaProbability =
     result.pneumonia_probability ??
@@ -115,7 +183,6 @@ export default function Results() {
         : 100 - confidence
     );
 
-
   const normalProbability =
     result.normal_probability ??
     (
@@ -124,18 +191,15 @@ export default function Results() {
         : 100 - confidence
     );
 
-
   const originalImage =
     getImageUrl(
       result.original_image
     );
 
-
   const heatmapImage =
     getImageUrl(
       result.heatmap
     );
-
 
   return (
     <>
@@ -431,11 +495,6 @@ export default function Results() {
 
         }
 
-
-        /* ===================================================
-           PRINT / PDF
-        =================================================== */
-
         @media print {
 
           @page {
@@ -556,7 +615,6 @@ export default function Results() {
 
           </div>
 
-
           <div className="patientCard">
 
             <div className="patientTitle">
@@ -617,7 +675,6 @@ export default function Results() {
 
           </div>
 
-
           <div className="resultCard">
 
             <div className="resultRow">
@@ -637,10 +694,17 @@ export default function Results() {
                 </div>
 
                 <div className="confidenceText">
+
                   Model confidence:{" "}
-                  <strong style={{ fontWeight: 300 }}>
+
+                  <strong
+                    style={{
+                      fontWeight: 300
+                    }}
+                  >
                     {confidence}%
                   </strong>
+
                 </div>
 
               </div>
@@ -652,7 +716,6 @@ export default function Results() {
             </div>
 
           </div>
-
 
           <div className="probabilityGrid">
 
@@ -682,7 +745,6 @@ export default function Results() {
 
           </div>
 
-
           <div className="imageGrid">
 
             <div className="imageCard">
@@ -706,6 +768,10 @@ export default function Results() {
                   <img
                     src={originalImage}
                     alt="Original Chest X-Ray"
+                    onError={(e) => {
+                      e.currentTarget.style.display =
+                        "none";
+                    }}
                   />
 
                 ) : (
@@ -729,7 +795,6 @@ export default function Results() {
 
             </div>
 
-
             <div className="imageCard">
 
               <div className="sectionHeader">
@@ -751,6 +816,10 @@ export default function Results() {
                   <img
                     src={heatmapImage}
                     alt="AI Grad-CAM Heatmap"
+                    onError={(e) => {
+                      e.currentTarget.style.display =
+                        "none";
+                    }}
                   />
 
                 ) : (
@@ -777,10 +846,13 @@ export default function Results() {
 
           </div>
 
-
           <div className="disclaimer">
 
-            <strong style={{ fontWeight: 300 }}>
+            <strong
+              style={{
+                fontWeight: 300
+              }}
+            >
               ⚠️ Important:
             </strong>{" "}
 

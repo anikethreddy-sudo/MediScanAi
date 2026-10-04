@@ -10,46 +10,40 @@ export default function History() {
 
   useEffect(() => {
 
-    // ============================================================
-    // GET CURRENT DOCTOR
-    // ============================================================
-
     const doctorId =
       localStorage.getItem("doctorId") ||
       "unknown";
 
-
-    // ============================================================
-    // CREATE DOCTOR-SPECIFIC HISTORY KEY
-    // ============================================================
-
     const historyKey =
       `scanHistory_${doctorId}`;
 
+    try {
 
-    // ============================================================
-    // LOAD ONLY CURRENT DOCTOR'S HISTORY
-    // ============================================================
+      const savedHistory =
+        JSON.parse(
+          localStorage.getItem(
+            historyKey
+          ) || "[]"
+        );
 
-    const savedHistory = JSON.parse(
-      localStorage.getItem(
-        historyKey
-      ) || "[]"
-    );
+      setHistory(
+        Array.isArray(savedHistory)
+          ? savedHistory
+          : []
+      );
 
+    } catch (error) {
 
-    setHistory(
-      Array.isArray(savedHistory)
-        ? savedHistory
-        : []
-    );
+      console.error(
+        "History loading error:",
+        error
+      );
+
+      setHistory([]);
+
+    }
 
   }, []);
-
-
-  // ============================================================
-  // OPEN RESULT
-  // ============================================================
 
   const openResult = (item) => {
 
@@ -59,12 +53,8 @@ export default function History() {
     );
 
     navigate("/results");
+
   };
-
-
-  // ============================================================
-  // CLEAR CURRENT DOCTOR'S HISTORY
-  // ============================================================
 
   const clearHistory = () => {
 
@@ -73,42 +63,24 @@ export default function History() {
         "Are you sure you want to clear all scan history?"
       );
 
-
     if (!confirmDelete) {
       return;
     }
-
-
-    // ----------------------------------------------------------
-    // GET CURRENT DOCTOR
-    // ----------------------------------------------------------
 
     const doctorId =
       localStorage.getItem("doctorId") ||
       "unknown";
 
-
-    // ----------------------------------------------------------
-    // CURRENT DOCTOR'S HISTORY KEY
-    // ----------------------------------------------------------
-
     const historyKey =
       `scanHistory_${doctorId}`;
-
-
-    // ----------------------------------------------------------
-    // DELETE ONLY CURRENT DOCTOR'S HISTORY
-    // ----------------------------------------------------------
 
     localStorage.removeItem(
       historyKey
     );
 
-
     setHistory([]);
 
   };
-
 
   return (
     <>
@@ -376,7 +348,9 @@ export default function History() {
 
                   <div
                     className="historyCard"
-                    key={index}
+                    key={
+                      `${item.scan_date || "scan"}-${index}`
+                    }
                   >
 
                     <div className="cardTop">
@@ -444,7 +418,11 @@ export default function History() {
 
                       Model Confidence:{" "}
 
-                      <strong style={{ fontWeight: 300 }}>
+                      <strong
+                        style={{
+                          fontWeight: 300
+                        }}
+                      >
                         {item.confidence}%
                       </strong>
 
