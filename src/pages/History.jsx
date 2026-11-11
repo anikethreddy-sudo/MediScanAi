@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { getPrediction, getConfidence } from "../utils/prediction";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function ImagePanel({ title, path }) {
   const [imageFailed, setImageFailed] = useState(false);
