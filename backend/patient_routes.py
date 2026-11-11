@@ -18,7 +18,7 @@ def get_connection():
     return conn
 
 
-# Automatically create the patient table when the backend starts.
+# Initialize patient and scan database tables.
 def initialize_patient_database():
     conn = get_connection()
 
@@ -34,8 +34,33 @@ def initialize_patient_database():
             )
         """)
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS scans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                patient_id TEXT,
+                patient_name TEXT,
+                age TEXT,
+                gender TEXT,
+                disease TEXT,
+                confidence REAL,
+                original_image TEXT,
+                heatmap_image TEXT,
+                created_at TEXT
+            )
+        """)
+
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_scans_patient_id
+            ON scans(patient_id)
+        """)
+
         conn.commit()
-        print("Patient database initialized successfully.")
+
+        print("Patient and scan databases initialized successfully.")
+
+    except sqlite3.Error:
+        conn.rollback()
+        raise
 
     finally:
         conn.close()
