@@ -111,28 +111,45 @@ def calculate_age(date_of_birth):
 
 
 # --------------------------------------------------
-# LOAD AI MODEL
+# LAZY LOAD BINARY AI MODEL
 # --------------------------------------------------
 
-print("Loading MediScan AI model...")
-
-model = load_model(MODEL_PATH, compile=False)
-
-print("MediScan AI model loaded.")
-print("Model input:", model.input_shape)
-print("Model output:", model.output_shape)
+model = None
+grad_model = None
 
 LAST_CONV_LAYER = "Conv_1"
 
-grad_model = Model(
-    inputs=model.inputs,
-    outputs=[
-        model.get_layer(LAST_CONV_LAYER).output,
-        model.output,
-    ],
-)
 
-print("Grad-CAM ready.")
+def get_binary_model():
+
+    global model, grad_model
+
+    if model is None:
+
+        print("Loading binary pneumonia model...")
+
+        model = load_model(
+            MODEL_PATH,
+            compile=False
+        )
+
+        print("Binary model loaded.")
+        print("Model input:", model.input_shape)
+        print("Model output:", model.output_shape)
+
+    if grad_model is None:
+
+        grad_model = Model(
+            inputs=model.inputs,
+            outputs=[
+                model.get_layer(LAST_CONV_LAYER).output,
+                model.output,
+            ],
+        )
+
+        print("Binary Grad-CAM ready.")
+
+    return model, grad_model
 
 
 # --------------------------------------------------
@@ -146,9 +163,11 @@ def generate_gradcam(
     pneumonia_probability
 ):
 
+    _, binary_grad_model = get_binary_model()
+
     with tf.GradientTape() as tape:
 
-        conv_outputs, predictions = grad_model(
+        conv_outputs, predictions = binary_grad_model(
             image_array,
             training=False
         )
@@ -444,7 +463,9 @@ async def predict(
 
     # 3. Run AI prediction
 
-    prediction_output = model.predict(
+    binary_model, _ = get_binary_model()
+
+    prediction_output = binary_model.predict(
         image_array,
         verbose=0
     )
