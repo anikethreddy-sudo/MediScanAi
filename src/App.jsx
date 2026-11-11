@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 import DoctorLogin from "./pages/DoctorLogin";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Results from "./pages/Results";
@@ -12,6 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 function PrivateRoute({ children }) {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
+
   return isLoggedIn ? children : <Navigate to="/login" replace />;
 }
 
@@ -22,6 +24,9 @@ export default function App() {
 
         {/* Landing Page */}
         <Route path="/" element={<Home />} />
+
+        {/* Doctor Registration */}
+        <Route path="/register" element={<Register />} />
 
         {/* Doctor Login */}
         <Route path="/login" element={<DoctorLogin />} />

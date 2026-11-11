@@ -1,244 +1,281 @@
+﻿import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Activity,
+  LayoutDashboard,
+  UploadCloud,
+  History,
+  FileText,
+  LogOut,
+  Menu,
+  X
+} from "lucide-react";
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const doctor =
-    localStorage.getItem("doctorName") || "Doctor";
+  const doctor = localStorage.getItem("doctorName") || "Doctor";
+
+  const links = [
+    { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { label: "Upload scan", path: "/upload", icon: UploadCloud },
+    { label: "History", path: "/history", icon: History },
+    { label: "Results", path: "/results", icon: FileText }
+  ];
 
   const logout = () => {
-
-    // ============================================================
-    // REMOVE CURRENT LOGIN SESSION
-    // ============================================================
-
     localStorage.removeItem("doctorName");
     localStorage.removeItem("doctorId");
     localStorage.removeItem("isLoggedIn");
-
-
-    // ============================================================
-    // REMOVE CURRENT RESULT
-    // ============================================================
-
     localStorage.removeItem("result");
-
-
-    // ============================================================
-    // REMOVE OLD SESSION KEY IF IT EXISTS
-    // DO NOT REMOVE scanHistory_* KEYS
-    // ============================================================
-
     localStorage.removeItem("currentDoctorKey");
-
-
-    // ============================================================
-    // GO TO LOGIN
-    // ============================================================
-
     navigate("/login");
   };
-
-
-  const active = (path) =>
-    location.pathname === path
-      ? "active link"
-      : "link";
-
 
   return (
     <>
       <style>{`
-      .nav{
-        height:78px;
-        background:rgba(4,24,77,.95);
-        backdrop-filter:blur(12px);
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        padding:0 40px;
-        position:sticky;
-        top:0;
-        z-index:1000;
-        border-bottom:1px solid rgba(255,255,255,.08);
-      }
-
-      .brand{
-        display:flex;
-        align-items:center;
-        gap:12px;
-        text-decoration:none;
-      }
-
-      .logo{
-        width:46px;
-        height:46px;
-        border-radius:50%;
-        background:linear-gradient(135deg,#38BDF8,#2563EB);
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        color:white;
-        font-size:24px;
-      }
-
-      .title{
-        color:white;
-        font-size:22px;
-        font-weight:600;
-      }
-
-      .menu{
-        display:flex;
-        align-items:center;
-        gap:12px;
-      }
-
-      .link{
-        color:#D6E5FF;
-        text-decoration:none;
-        padding:10px 16px;
-        border-radius:10px;
-        font-size:15px;
-        transition:.25s;
-      }
-
-      .link:hover{
-        background:rgba(255,255,255,.08);
-        color:white;
-      }
-
-      .active{
-        background:#2563EB;
-        color:white;
-      }
-
-      .right{
-        display:flex;
-        align-items:center;
-        gap:14px;
-      }
-
-      .doctor{
-        color:white;
-        font-size:14px;
-        background:rgba(255,255,255,.08);
-        padding:8px 14px;
-        border-radius:25px;
-      }
-
-      .logout{
-        border:none;
-        background:#EF4444;
-        color:white;
-        padding:10px 18px;
-        border-radius:10px;
-        cursor:pointer;
-        font-weight:600;
-      }
-
-      .logout:hover{
-        background:#DC2626;
-      }
-
-      @media(max-width:900px){
-        .nav{
-          flex-direction:column;
-          height:auto;
-          padding:18px;
-          gap:16px;
+        .ms-navbar {
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          min-height: 76px;
+          padding: 0 5%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          background: rgba(255,255,255,.97);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid #DCECE1;
+          box-shadow: 0 3px 16px rgba(25,90,57,.05);
         }
 
-        .menu{
-          flex-wrap:wrap;
-          justify-content:center;
+        .ms-brand {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          flex-shrink: 0;
+          text-decoration: none;
         }
 
-        .right{
-          flex-direction:column;
-          width:100%;
+        .ms-logo {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          color: #fff;
+          background: linear-gradient(145deg,#159768,#08734D);
+          box-shadow: 0 5px 13px rgba(19,134,91,.20);
         }
 
-        .doctor{
-          width:100%;
-          text-align:center;
+        .ms-brand-name {
+          color: #183C30;
+          font-size: 19px;
+          font-weight: 800;
+          letter-spacing: -.7px;
         }
 
-        .logout{
-          width:100%;
+        .ms-brand-name span {
+          color: #13865B;
         }
-      }
+
+        .ms-menu {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .ms-link {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 13px;
+          border-radius: 11px;
+          color: #536F61;
+          font-size: 12px;
+          font-weight: 500;
+          text-decoration: none;
+          transition: .2s ease;
+        }
+
+        .ms-link:hover {
+          color: #096B47;
+          background: #E8F5EC;
+        }
+
+        .ms-link-active {
+          color: #096B47;
+          background: #DDF1E4;
+          font-weight: 700;
+        }
+
+        .ms-account {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .ms-doctor-avatar {
+          width: 36px;
+          height: 36px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #DDF1E4;
+          color: #096B47;
+          font-size: 13px;
+          font-weight: 700;
+          border: 1px solid #C8E5D2;
+        }
+
+        .ms-doctor {
+          color: #294C3D;
+          font-size: 12px;
+          font-weight: 500;
+          white-space: nowrap;
+        }
+
+        .ms-logout {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          padding: 10px 13px;
+          border: 1px solid #BBDCC8;
+          border-radius: 10px;
+          background: #F2FAF4;
+          color: #096B47;
+          font-size: 11px;
+          font-weight: 700;
+          transition: .2s;
+          cursor: pointer;
+        }
+
+        .ms-logout:hover {
+          background: #DDF1E4;
+          border-color: #13865B;
+        }
+
+        .ms-mobile-toggle {
+          display: none;
+          width: 40px;
+          height: 40px;
+          place-items: center;
+          border: 1px solid #DCECE1;
+          border-radius: 11px;
+          background: #F2FAF4;
+          color: #096B47;
+          cursor: pointer;
+        }
+
+        @media(max-width: 900px) {
+          .ms-navbar {
+            flex-wrap: wrap;
+            padding: 13px 20px;
+            gap: 12px;
+          }
+
+          .ms-mobile-toggle {
+            display: grid;
+          }
+
+          .ms-menu {
+            display: none;
+            order: 4;
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 8px 0;
+          }
+
+          .ms-menu.ms-menu-open {
+            display: flex;
+          }
+
+          .ms-link {
+            padding: 13px;
+          }
+
+          .ms-account {
+            margin-left: auto;
+          }
+        }
+
+        @media(max-width: 480px) {
+          .ms-navbar {
+            padding: 12px 14px;
+          }
+
+          .ms-brand-name {
+            font-size: 16px;
+          }
+
+          .ms-doctor {
+            display: none;
+          }
+
+          .ms-logout {
+            padding: 9px;
+          }
+        }
       `}</style>
 
-      <nav className="nav">
-
+      <nav className="ms-navbar">
         <Link
           to="/dashboard"
-          className="brand"
+          className="ms-brand"
+          onClick={() => setMobileOpen(false)}
         >
-          <div className="logo">
-            🩺
+          <div className="ms-logo">
+            <Activity size={23} strokeWidth={2.5} />
           </div>
-
-          <div className="title">
-            MediScan AI
-          </div>
+          <span className="ms-brand-name">
+            MediScan <span>AI</span>
+          </span>
         </Link>
 
+        <div className={`ms-menu ${mobileOpen ? "ms-menu-open" : ""}`}>
+          {links.map((link) => {
+            const Icon = link.icon;
+            const active = location.pathname === link.path;
 
-        <div className="menu">
-
-          <Link
-            className={active("/dashboard")}
-            to="/dashboard"
-          >
-            Dashboard
-          </Link>
-
-
-          <Link
-            className={active("/upload")}
-            to="/upload"
-          >
-            Upload
-          </Link>
-
-
-          <Link
-            className={active("/history")}
-            to="/history"
-          >
-            History
-          </Link>
-
-
-          <Link
-            className={active("/results")}
-            to="/results"
-          >
-            Results
-          </Link>
-
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setMobileOpen(false)}
+                className={active ? "ms-link ms-link-active" : "ms-link"}
+              >
+                <Icon size={16} />
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
-
-        <div className="right">
-
-          <div className="doctor">
-            👨‍⚕️ Dr. {doctor}
+        <div className="ms-account">
+          <div className="ms-doctor-avatar">
+            {doctor.trim().charAt(0).toUpperCase()}
           </div>
+          <span className="ms-doctor">Dr. {doctor}</span>
 
-
-          <button
-            className="logout"
-            onClick={logout}
-          >
+          <button className="ms-logout" onClick={logout}>
+            <LogOut size={15} />
             Logout
           </button>
 
+          <button
+            className="ms-mobile-toggle"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
-
       </nav>
     </>
   );

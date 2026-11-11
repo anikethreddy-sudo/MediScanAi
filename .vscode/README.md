@@ -5,7 +5,7 @@ AI-powered Chest X-Ray Pneumonia Detection System built with React, FastAPI and 
 ## 🚀 Live Demo
 
 - **Frontend:** https://mediscanai-frontend.onrender.com
-- **Backend:** https://mediscanai-bb2m.onrender.com
+- **Backend:** https://https://mediscanai-backend-pzfz.onrender.com
 
 ## ✨ Features
 

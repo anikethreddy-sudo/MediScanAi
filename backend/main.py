@@ -1,792 +1,510 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from multiclass_routes import router as multiclass_router
+
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
-from PIL import Image
-
+from PIL import Image, UnidentifiedImageError
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+
+from patient_routes import router as patient_router
 
 import tensorflow as tf
 import numpy as np
 import cv2
 import uuid
 import os
+import sqlite3
+
+from datetime import date, datetime
 
 
-# ============================================================
-# APP
-# ============================================================
+app = FastAPI(title="MediScan AI")
+app.include_router(multiclass_router)
 
-app = FastAPI(
-    title="MediScan AI"
-)
+# Patient registration and lookup APIs
+app.include_router(patient_router)
 
-
-# ============================================================
-# CORS
-# ============================================================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5176",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5176",
-        "https://mediscanai-frontend.onrender.com",
-    ],
-    allow_credentials=False,
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+REPORT_DIR = os.path.join(BASE_DIR, "reports")
+MODEL_PATH = os.path.join(BASE_DIR, "pneumonia_model.keras")
+DATABASE_PATH = os.path.join(BASE_DIR, "mediscan.db")
 
-# ============================================================
-# DIRECTORIES
-# ============================================================
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(REPORT_DIR, exist_ok=True)
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
-
-UPLOAD_DIR = os.path.join(
-    BASE_DIR,
-    "uploads"
-)
-
-REPORT_DIR = os.path.join(
-    BASE_DIR,
-    "reports"
-)
-
-MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "pneumonia_model.keras"
-)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app.mount("/reports", StaticFiles(directory=REPORT_DIR), name="reports")
 
 
-os.makedirs(
-    UPLOAD_DIR,
-    exist_ok=True
-)
-
-os.makedirs(
-    REPORT_DIR,
-    exist_ok=True
-)
+def get_connection():
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
-# ============================================================
-# STATIC FILES
-# ============================================================
+def calculate_age(date_of_birth):
+    today = date.today()
 
-app.mount(
-    "/uploads",
-    StaticFiles(
-        directory=UPLOAD_DIR
-    ),
-    name="uploads"
-)
+    return (
+        today.year
+        - date_of_birth.year
+        - (
+            (today.month, today.day)
+            < (date_of_birth.month, date_of_birth.day)
+        )
+    )
 
-app.mount(
-    "/reports",
-    StaticFiles(
-        directory=REPORT_DIR
-    ),
-    name="reports"
-)
-
-
-# ============================================================
-# LOAD MODEL
-# ============================================================
 
 print("Loading MediScan AI model...")
 
-model = load_model(
-    MODEL_PATH,
-    compile=False
-)
+model = load_model(MODEL_PATH, compile=False)
 
 print("MediScan AI model loaded.")
-
-print(
-    "Model input:",
-    model.input_shape
-)
-
-print(
-    "Model output:",
-    model.output_shape
-)
-
-
-# ============================================================
-# GRAD-CAM MODEL
-# ============================================================
+print("Model input:", model.input_shape)
+print("Model output:", model.output_shape)
 
 LAST_CONV_LAYER = "Conv_1"
-
-print(
-    "Preparing Grad-CAM..."
-)
 
 grad_model = Model(
     inputs=model.inputs,
     outputs=[
-        model.get_layer(
-            LAST_CONV_LAYER
-        ).output,
-        model.output
-    ]
+        model.get_layer(LAST_CONV_LAYER).output,
+        model.output,
+    ],
 )
 
-print(
-    "Grad-CAM ready."
-)
+print("Grad-CAM ready.")
 
 
-# ============================================================
-# GRAD-CAM
-# ============================================================
-
-def generate_gradcam(
-    image_array,
-    original_path,
-    save_path,
-    pneumonia_probability
-):
-
-    # --------------------------------------------------------
-    # MODEL FORWARD PASS
-    # --------------------------------------------------------
-
+def generate_gradcam(image_array, original_path, save_path, pneumonia_probability):
     with tf.GradientTape() as tape:
-
-        conv_outputs, predictions = grad_model(
-            image_array,
-            training=False
-        )
+        conv_outputs, predictions = grad_model(image_array, training=False)
 
         pneumonia_score = predictions[:, 0]
+        normal_score = 1.0 - pneumonia_score
 
-        normal_score = (
-            1.0 -
+        target_score = (
             pneumonia_score
+            if pneumonia_probability >= 0.5
+            else normal_score
         )
 
-        if pneumonia_probability >= 0.5:
-
-            target_score = pneumonia_score
-
-        else:
-
-            target_score = normal_score
-
-
-    # --------------------------------------------------------
-    # GRADIENTS
-    # --------------------------------------------------------
-
-    gradients = tape.gradient(
-        target_score,
-        conv_outputs
-    )
+    gradients = tape.gradient(target_score, conv_outputs)
 
     if gradients is None:
+        raise RuntimeError("Unable to calculate Grad-CAM gradients.")
 
-        raise RuntimeError(
-            "Unable to calculate Grad-CAM gradients."
-        )
-
-
-    # --------------------------------------------------------
-    # GLOBAL AVERAGE POOLING
-    # --------------------------------------------------------
-
-    pooled_gradients = tf.reduce_mean(
-        gradients,
-        axis=(0, 1, 2)
-    )
-
-
-    # --------------------------------------------------------
-    # REMOVE BATCH DIMENSION
-    # --------------------------------------------------------
-
+    pooled_gradients = tf.reduce_mean(gradients, axis=(0, 1, 2))
     conv_outputs = conv_outputs[0]
 
-
-    # --------------------------------------------------------
-    # WEIGHT FEATURE MAPS
-    # --------------------------------------------------------
-
     heatmap = tf.reduce_sum(
-        conv_outputs *
-        pooled_gradients,
-        axis=-1
+        conv_outputs * pooled_gradients,
+        axis=-1,
     )
 
-
-    # --------------------------------------------------------
-    # KEEP POSITIVE ACTIVATIONS
-    # --------------------------------------------------------
-
-    heatmap = tf.maximum(
-        heatmap,
-        0
-    )
-
-    heatmap = heatmap.numpy()
-
-
-    # --------------------------------------------------------
-    # NORMALIZE
-    # --------------------------------------------------------
-
-    max_value = np.max(
-        heatmap
-    )
+    heatmap = tf.maximum(heatmap, 0).numpy()
+    max_value = np.max(heatmap)
 
     if max_value > 0:
-
-        heatmap = (
-            heatmap /
-            max_value
-        )
-
+        heatmap = heatmap / max_value
     else:
+        heatmap = np.zeros_like(heatmap)
 
-        heatmap = np.zeros_like(
-            heatmap
-        )
-
-
-    # ========================================================
-    # READ ORIGINAL X-RAY
-    # ========================================================
-
-    original = cv2.imread(
-        original_path,
-        cv2.IMREAD_COLOR
-    )
+    original = cv2.imread(original_path, cv2.IMREAD_COLOR)
 
     if original is None:
+        raise ValueError("Unable to read original X-ray image.")
 
-        raise ValueError(
-            "Unable to read original X-ray image."
-        )
-
-
-    # --------------------------------------------------------
-    # ORIGINAL IMAGE SIZE
-    # --------------------------------------------------------
-
-    original_height = original.shape[0]
-
-    original_width = original.shape[1]
-
-
-    # ========================================================
-    # UPSCALE GRAD-CAM
-    # ========================================================
+    height, width = original.shape[:2]
 
     heatmap = cv2.resize(
         heatmap,
-        (
-            original_width,
-            original_height
-        ),
-        interpolation=cv2.INTER_CUBIC
+        (width, height),
+        interpolation=cv2.INTER_CUBIC,
     )
 
+    heatmap = cv2.GaussianBlur(heatmap, (0, 0), sigmaX=10)
 
-    # ========================================================
-    # HEAVY SMOOTHING
-    # ========================================================
-
-    heatmap = cv2.GaussianBlur(
-        heatmap,
-        (0, 0),
-        sigmaX=10
-    )
-
-
-    # ========================================================
-    # NORMALIZE AGAIN
-    # ========================================================
-
-    min_value = np.min(
-        heatmap
-    )
-
-    max_value = np.max(
-        heatmap
-    )
+    min_value = np.min(heatmap)
+    max_value = np.max(heatmap)
 
     if max_value > min_value:
-
-        heatmap = (
-            heatmap -
-            min_value
-        ) / (
-            max_value -
-            min_value
-        )
-
+        heatmap = (heatmap - min_value) / (max_value - min_value)
     else:
+        heatmap = np.zeros_like(heatmap)
 
-        heatmap = np.zeros_like(
-            heatmap
-        )
-
-
-    # ========================================================
-    # IMPROVE COLOR DISTRIBUTION
-    # ========================================================
-
-    heatmap = np.power(
-        heatmap,
-        0.75
-    )
-
-    heatmap = np.clip(
-        heatmap,
-        0,
-        1
-    )
-
-
-    # ========================================================
-    # CREATE JET HEATMAP
-    # ========================================================
-
-    heatmap_uint8 = (
-        heatmap *
-        255
-    ).astype(
-        np.uint8
-    )
+    heatmap = np.clip(np.power(heatmap, 0.75), 0, 1)
+    heatmap_uint8 = (heatmap * 255).astype(np.uint8)
 
     colored_heatmap = cv2.applyColorMap(
         heatmap_uint8,
-        cv2.COLORMAP_JET
+        cv2.COLORMAP_JET,
     )
-
-
-    # ========================================================
-    # CREATE STRONGER CHEXNET-LIKE OVERLAY
-    # ========================================================
-
-    alpha = (
-        0.20 +
-        heatmap *
-        0.55
-    )
-
-    alpha = np.clip(
-        alpha,
-        0.20,
-        0.75
-    )
-
-
-    # --------------------------------------------------------
-    # CREATE 3-CHANNEL ALPHA
-    # --------------------------------------------------------
 
     alpha = np.expand_dims(
-        alpha,
-        axis=2
+        np.clip(0.20 + heatmap * 0.55, 0.20, 0.75),
+        axis=2,
     )
 
-
-    # ========================================================
-    # FLOAT CONVERSION
-    # ========================================================
-
-    original_float = (
-        original.astype(
-            np.float32
-        )
-    )
-
-    heatmap_float = (
-        colored_heatmap.astype(
-            np.float32
-        )
-    )
-
-
-    # ========================================================
-    # BLEND
-    # ========================================================
+    original_float = original.astype(np.float32)
+    heatmap_float = colored_heatmap.astype(np.float32)
 
     overlay = (
-        original_float *
-        (
-            1.0 -
-            alpha
-        )
-        +
-        heatmap_float *
-        alpha
+        original_float * (1.0 - alpha)
+        + heatmap_float * alpha
     )
 
+    overlay = np.clip(overlay, 0, 255).astype(np.uint8)
 
-    # ========================================================
-    # FINAL PIXEL RANGE
-    # ========================================================
+    if not cv2.imwrite(save_path, overlay):
+        raise RuntimeError("Unable to save Grad-CAM heatmap.")
 
-    overlay = np.clip(
-        overlay,
-        0,
-        255
-    )
-
-
-    # ========================================================
-    # UINT8
-    # ========================================================
-
-    overlay = overlay.astype(
-        np.uint8
-    )
-
-
-    # ========================================================
-    # SAVE
-    # ========================================================
-
-    success = cv2.imwrite(
-        save_path,
-        overlay
-    )
-
-    if not success:
-
-        raise RuntimeError(
-            "Unable to save Grad-CAM heatmap."
-        )
-
-
-# ============================================================
-# HOME
-# ============================================================
 
 @app.get("/")
 def home():
-
     return {
-
-        "message":
-            "Welcome to MediScan AI 🚀",
-
-        "status":
-            "online",
-
-        "model":
-            "MobileNetV2 Pneumonia Classifier",
-
-        "gradcam_layer":
-            LAST_CONV_LAYER
-
+        "message": "Welcome to MediScan AI",
+        "status": "online",
+        "model": "MobileNetV2 Pneumonia Classifier",
+        "gradcam_layer": LAST_CONV_LAYER,
+        "supported_classes": ["NORMAL", "PNEUMONIA"],
+        "other_disease_detection": False,
     }
 
 
-# ============================================================
-# PREDICTION
-# ============================================================
-
 @app.post("/predict")
 async def predict(
-
     username: str = Form(...),
-
-    patient_name: str = Form(...),
-
-    age: int = Form(...),
-
-    gender: str = Form(...),
-
-    file: UploadFile = File(...)
-
+    patient_id: str = Form(...),
+    file: UploadFile = File(...),
 ):
+    # 1. Validate Patient ID and retrieve registered patient
+    patient_id = patient_id.strip().upper()
 
-    # --------------------------------------------------------
-    # FILE EXTENSION
-    # --------------------------------------------------------
+    if not patient_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Patient ID is required.",
+        )
 
-    original_extension = os.path.splitext(
-        file.filename
-    )[1].lower()
+    conn = get_connection()
 
+    try:
+        patient = conn.execute(
+            """
+            SELECT patient_id, patient_name, date_of_birth, gender
+            FROM patients
+            WHERE patient_id = ?
+            """,
+            (patient_id,),
+        ).fetchone()
 
-    if original_extension == "":
+    finally:
+        conn.close()
 
+    if patient is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Patient ID not found. Register the patient first.",
+        )
+
+    try:
+        date_of_birth = date.fromisoformat(patient["date_of_birth"])
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=500,
+            detail="Invalid date of birth in patient record.",
+        )
+
+    if date_of_birth > date.today():
+        raise HTTPException(
+            status_code=400,
+            detail="Patient date of birth cannot be in the future.",
+        )
+
+    patient_name = patient["patient_name"]
+    gender = patient["gender"]
+    age = calculate_age(date_of_birth)
+
+    # 2. Validate uploaded image
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a valid image file.",
+        )
+
+    original_extension = os.path.splitext(file.filename or "")[1].lower()
+
+    if original_extension not in [".jpg", ".jpeg", ".png", ".webp", ".bmp"]:
         original_extension = ".jpg"
 
+    unique_id = str(uuid.uuid4())
 
-    # --------------------------------------------------------
-    # UNIQUE ID
-    # --------------------------------------------------------
+    image_filename = f"{unique_id}{original_extension}"
+    heatmap_filename = f"{unique_id}_heatmap.png"
 
-    unique_id = str(
-        uuid.uuid4()
-    )
-
-
-    # --------------------------------------------------------
-    # FILE NAMES
-    # --------------------------------------------------------
-
-    image_filename = (
-        f"{unique_id}"
-        f"{original_extension}"
-    )
-
-    heatmap_filename = (
-        f"{unique_id}"
-        f"_heatmap.png"
-    )
-
-
-    # --------------------------------------------------------
-    # PATHS
-    # --------------------------------------------------------
-
-    image_path = os.path.join(
-        UPLOAD_DIR,
-        image_filename
-    )
-
-    heatmap_path = os.path.join(
-        UPLOAD_DIR,
-        heatmap_filename
-    )
-
-
-    # --------------------------------------------------------
-    # SAVE IMAGE
-    # --------------------------------------------------------
+    image_path = os.path.join(UPLOAD_DIR, image_filename)
+    heatmap_path = os.path.join(UPLOAD_DIR, heatmap_filename)
 
     file_data = await file.read()
 
-
-    with open(
-        image_path,
-        "wb"
-    ) as image_file:
-
-        image_file.write(
-            file_data
+    if not file_data:
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded file is empty.",
         )
 
-
-    # --------------------------------------------------------
-    # OPEN IMAGE
-    # --------------------------------------------------------
+    with open(image_path, "wb") as image_file:
+        image_file.write(file_data)
 
     try:
+        image = Image.open(image_path).convert("RGB")
 
-        image = Image.open(
-            image_path
-        ).convert(
-            "RGB"
+    except (UnidentifiedImageError, OSError):
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded file is not a valid image.",
         )
 
-    except Exception:
+    image = image.resize((224, 224))
 
-        if os.path.exists(
-            image_path
-        ):
+    image_array = np.array(image, dtype=np.float32)
+    image_array = preprocess_input(image_array)
+    image_array = np.expand_dims(image_array, axis=0)
 
-            os.remove(
-                image_path
-            )
+    # 3. Run AI prediction
+    prediction_output = model.predict(image_array, verbose=0)
 
-        return {
+    if prediction_output.size != 1:
+        raise HTTPException(
+            status_code=500,
+            detail="This code expects a binary model with one output. Check the model output shape.",
+        )
 
-            "error":
-                "The uploaded file is not a valid image."
+    pneumonia_probability = float(prediction_output.reshape(-1)[0])
 
-        }
+    if not np.isfinite(pneumonia_probability) or not (
+        0.0 <= pneumonia_probability <= 1.0
+    ):
+        raise HTTPException(
+            status_code=500,
+            detail="The model returned an invalid score. Please check the model output.",
+        )
 
+    normal_probability = 1.0 - pneumonia_probability
 
-    # --------------------------------------------------------
-    # RESIZE
-    # --------------------------------------------------------
+    # 4. Interpret experimental model score
+    if pneumonia_probability >= 0.70:
+        prediction = "Pneumonia Suspected"
+        confidence = round(pneumonia_probability * 100, 1)
+        confidence_level = "Higher model score"
+        risk_level = "Needs medical review"
 
-    image = image.resize(
-        (224, 224)
-    )
+        ai_finding = (
+            "The AI detected an X-ray pattern that may be consistent "
+            "with pneumonia. This is not a confirmed diagnosis."
+        )
 
+        recommended_action = (
+            "Arrange medical review of the chest X-ray and symptoms. "
+            "Do not start antibiotics based only on this AI result."
+        )
 
-    # --------------------------------------------------------
-    # NUMPY
-    # --------------------------------------------------------
+    elif pneumonia_probability <= 0.30:
+        prediction = "No Strong Pneumonia-like Pattern Detected"
+        confidence = round(normal_probability * 100, 1)
+        confidence_level = "Higher normal-class score"
+        risk_level = "Not a clinical risk assessment"
 
-    image_array = np.array(
-        image,
-        dtype=np.float32
-    )
+        ai_finding = (
+            "The AI did not detect a strong pneumonia-like pattern. "
+            "This does not rule out pneumonia or another disease."
+        )
 
-
-    # --------------------------------------------------------
-    # MOBILENETV2 PREPROCESSING
-    # --------------------------------------------------------
-
-    image_array = preprocess_input(
-        image_array
-    )
-
-
-    # --------------------------------------------------------
-    # BATCH DIMENSION
-    # --------------------------------------------------------
-
-    image_array = np.expand_dims(
-        image_array,
-        axis=0
-    )
-
-
-    # ========================================================
-    # PREDICTION
-    # ========================================================
-
-    prediction_output = model.predict(
-        image_array,
-        verbose=0
-    )
-
-
-    pneumonia_probability = float(
-        prediction_output[0][0]
-    )
-
-
-    # ========================================================
-    # CLASSIFICATION
-    # ========================================================
-
-    if pneumonia_probability >= 0.5:
-
-        prediction = "Pneumonia"
-
-        confidence = round(
-            pneumonia_probability *
-            100,
-            1
+        recommended_action = (
+            "If symptoms persist or worsen, consult a healthcare "
+            "professional even when the AI score is low."
         )
 
     else:
-
-        prediction = "Normal"
-
+        prediction = "Inconclusive"
         confidence = round(
-            (
-                1.0 -
-                pneumonia_probability
-            )
-            *
-            100,
-            1
+            max(pneumonia_probability, normal_probability) * 100,
+            1,
+        )
+        confidence_level = "Uncertain model result"
+        risk_level = "Needs further assessment"
+
+        ai_finding = (
+            "The model result is uncertain. The AI cannot reliably "
+            "decide whether this X-ray is normal or shows pneumonia."
         )
 
+        recommended_action = (
+            "Do not treat this result as a diagnosis. A healthcare "
+            "professional should assess the X-ray and symptoms."
+        )
 
-    # ========================================================
-    # GRAD-CAM
-    # ========================================================
+    if prediction == "Pneumonia Suspected":
+        why = (
+            "The model score is in the higher pneumonia-like range "
+            "used by this experimental application."
+        )
 
+        counterpoint = (
+            "Other lung conditions can sometimes look similar. "
+            "This model cannot distinguish or name those conditions."
+        )
+
+    elif prediction == "No Strong Pneumonia-like Pattern Detected":
+        why = (
+            "The model score is in the lower pneumonia-like range "
+            "used by this experimental application."
+        )
+
+        counterpoint = (
+            "A low score cannot exclude pneumonia or another disease, "
+            "especially when symptoms are present."
+        )
+
+    else:
+        why = (
+            "The model score falls between the experimental decision "
+            "ranges, so the result is treated as inconclusive."
+        )
+
+        counterpoint = (
+            "An uncertain AI score cannot determine which disease, "
+            "if any, the person has."
+        )
+
+    # 5. Generate Grad-CAM
     try:
-
         generate_gradcam(
-
             image_array=image_array,
-
             original_path=image_path,
-
             save_path=heatmap_path,
-
-            pneumonia_probability=
-                pneumonia_probability
-
+            pneumonia_probability=pneumonia_probability,
         )
 
-        heatmap_url = (
-            f"/uploads/"
-            f"{heatmap_filename}"
-        )
+        heatmap_url = f"/uploads/{heatmap_filename}"
 
     except Exception as error:
-
-        print(
-            "Grad-CAM error:",
-            str(error)
-        )
-
+        print("Grad-CAM error:", str(error))
         heatmap_url = ""
 
+    # 6. Save this visit as a separate scan record
+    scan_date = datetime.now().strftime("%d %b %Y %I:%M %p")
 
-    # ========================================================
-    # RESPONSE
-    # ========================================================
+    conn = get_connection()
+
+    try:
+        cursor = conn.execute(
+            """
+            INSERT INTO scans (
+                patient_id,
+                patient_name,
+                age,
+                gender,
+                disease,
+                confidence,
+                original_image,
+                heatmap_image,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                patient_id,
+                patient_name,
+                str(age),
+                gender,
+                prediction,
+                confidence,
+                image_filename,
+                heatmap_filename if heatmap_url else "",
+                scan_date,
+            ),
+        )
+
+        scan_id = cursor.lastrowid
+        conn.commit()
+
+    except sqlite3.Error as error:
+        conn.rollback()
+
+        print("Scan database error:", str(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Prediction completed, but the scan could not be saved.",
+        )
+
+    finally:
+        conn.close()
+
+    # 7. Response
+    screening_notice = (
+        "This experimental AI tool only compares NORMAL and PNEUMONIA "
+        "patterns. It cannot diagnose or name other diseases. Similar "
+        "symptoms do not prove that a person has pneumonia or another "
+        "specific disease. Clinical assessment is needed."
+    )
+
+    precautions = [
+        "Seek medical advice if symptoms persist or worsen.",
+        "Rest and drink fluids if your healthcare professional has not restricted them.",
+        "Avoid smoking and second-hand smoke.",
+        "Use medicines, including antibiotics, only as advised by a healthcare professional.",
+        "Seek emergency help for severe breathing difficulty, blue or grey lips, or sudden confusion.",
+    ]
 
     return {
-
-        "username":
-            username,
-
-        "patient_name":
-            patient_name,
-
-        "age":
-            age,
-
-        "gender":
-            gender,
-
-        "prediction":
-            prediction,
-
-        "confidence":
-            confidence,
-
-        "pneumonia_probability":
-            round(
-                pneumonia_probability *
-                100,
-                2
-            ),
-
-        "normal_probability":
-            round(
-                (
-                    1.0 -
-                    pneumonia_probability
-                )
-                *
-                100,
-                2
-            ),
-
-        "original_image":
-            f"/uploads/"
-            f"{image_filename}",
-
-        "heatmap":
-            heatmap_url,
-
-        "pdf":
-            "",
-
-        "disclaimer":
-            (
-                "For demonstration and research "
-                "purposes only. This AI system "
-                "is not a medical diagnosis."
-            )
-
+        "scan_id": scan_id,
+        "patient_id": patient_id,
+        "username": username,
+        "patient_name": patient_name,
+        "date_of_birth": date_of_birth.isoformat(),
+        "age": age,
+        "gender": gender,
+        "scan_date": scan_date,
+        "prediction": prediction,
+        "confidence": confidence,
+        "confidence_level": confidence_level,
+        "risk_level": risk_level,
+        "ai_finding": ai_finding,
+        "why": why,
+        "counterpoint": counterpoint,
+        "recommended_action": recommended_action,
+        "ai_takeaway": (
+            "This is an experimental screening aid, not a medical diagnosis."
+        ),
+        "screening_notice": screening_notice,
+        "precautions": precautions,
+        "pneumonia_probability": round(pneumonia_probability * 100, 2),
+        "normal_probability": round(normal_probability * 100, 2),
+        "original_image": f"/uploads/{image_filename}",
+        "heatmap": heatmap_url,
+        "pdf": "",
+        "disclaimer": (
+            "For research and demonstration only. The model score is not "
+            "the probability that a patient truly has or does not have a "
+            "disease. This model supports only NORMAL versus PNEUMONIA "
+            "classification and may make false-positive or false-negative "
+            "predictions. It cannot identify other diseases."
+        ),
     }

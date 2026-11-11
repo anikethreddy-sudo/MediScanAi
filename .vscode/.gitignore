@@ -1,28 +1,9 @@
-# Node
+@"
+venv/
+.venv/
 node_modules/
-dist/
-
-# Python
 __pycache__/
 *.pyc
-.venv/
-venv/
-
-# Environment
+dist/
 .env
-
-# Database
-*.db
-
-# Generated files
-backend/uploads/
-backend/heatmaps/
-backend/reports/
-backend/pdfs/
-
-# VS Code
-.vscode/
-
-# OS
-.DS_Store
-Thumbs.db
+"@ | Set-Content .gitignore

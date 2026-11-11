@@ -1,6 +1,44 @@
-venv/
-node_modules/
+﻿venv/
 __pycache__/
-*.pyc
-dist/
+*.py[cod]
+.pytest_cache/
+
+# Environment and secrets
 .env
+.env.*
+!.env.example
+
+# Databases and generated files
+*.db
+backend/uploads/
+backend/pdfs/
+backend/reports/
+backend/heatmaps/
+
+# Datasets
+backend/dataset/
+backend/multiclass_dataset/
+backend/normal_files/
+chestxray2017/
+
+# Unused model files and checkpoints
+*.h5
+backend/pneumonia_model.keras
+backend/best_densenet_model.keras
+backend/best_pneumonia_model.keras
+backend/multiclass_models/
+
+# Keep the model required by backend/main.py
+!backend/pneumonia_model.keras
+
+# Temporary files
+cloudflared.exe.exe
+mediscan_frontend.zip
+*.log
+
+# Frontend
+node_modules/
+dist/
+
+# Editor
+.vscode/

@@ -1,0 +1,19 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;700&display=swap');
+
+* {
+  font-family: 'Manrope', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700 !important;
+  color: #18352C;
+}
+
+body, p, span, label, li, td, th, a, input, textarea, select, button {
+  font-weight: 300;
+  color: #263D35;
+}
+
+strong, b {
+  font-weight: 700;
+}
