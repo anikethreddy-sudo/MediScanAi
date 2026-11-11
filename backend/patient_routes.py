@@ -18,6 +18,32 @@ def get_connection():
     return conn
 
 
+# Automatically create the patient table when the backend starts.
+def initialize_patient_database():
+    conn = get_connection()
+
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS patients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                patient_id TEXT UNIQUE,
+                patient_name TEXT NOT NULL,
+                date_of_birth TEXT NOT NULL,
+                gender TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        conn.commit()
+        print("Patient database initialized successfully.")
+
+    finally:
+        conn.close()
+
+
+initialize_patient_database()
+
+
 class PatientCreate(BaseModel):
     patient_name: str
     date_of_birth: date
@@ -40,7 +66,10 @@ def register_patient(patient: PatientCreate):
     gender = patient.gender.strip().capitalize()
 
     if not name:
-        raise HTTPException(status_code=400, detail="Patient name is required.")
+        raise HTTPException(
+            status_code=400,
+            detail="Patient name is required."
+        )
 
     if patient.date_of_birth > date.today():
         raise HTTPException(
@@ -49,12 +78,14 @@ def register_patient(patient: PatientCreate):
         )
 
     if gender not in ["Male", "Female", "Other"]:
-        raise HTTPException(status_code=400, detail="Invalid gender.")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid gender."
+        )
 
     conn = get_connection()
 
     try:
-        # Generate a unique permanent ID.
         while True:
             patient_id = "MSP-" + uuid.uuid4().hex[:10].upper()
 
