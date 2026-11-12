@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 
 export default function Footer() {
@@ -6,163 +7,172 @@ export default function Footer() {
   return (
     <>
       <style>{`
-        .footer{
-          margin-top:90px;
-          background:rgba(255,255,255,.05);
-          backdrop-filter:blur(12px);
-          border-top:1px solid rgba(255,255,255,.08);
+        .footer-section {
+          margin-top: 90px;
+          background: #edf5ef;
+          border-top: 1px solid #dce9df;
+          border-radius: 18px 18px 0 0;
+          color: #17251e;
         }
 
-        .footerContainer{
-          max-width:1450px;
-          margin:auto;
-          padding:55px 24px 30px;
+        .footer-container {
+          max-width: 1450px;
+          margin: auto;
+          padding: 55px 24px 30px;
         }
 
-        .top{
-          display:grid;
-          grid-template-columns:2fr 1fr 1fr;
-          gap:45px;
+        .footer-top {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: 45px;
         }
 
-        .brand{
-          color:white;
-          font-size:34px;
-          font-weight:300;
-          letter-spacing:-1px;
+        .footer-brand {
+          color: #193d2a;
+          font-size: 32px;
+          font-weight: 600;
+          letter-spacing: -1px;
         }
 
-        .desc{
-          color:#C7D7F8;
-          line-height:1.9;
-          font-size:16px;
-          font-weight:300;
-          margin-top:16px;
-          max-width:430px;
+        .footer-desc {
+          color: #627268;
+          line-height: 1.9;
+          font-size: 14px;
+          margin-top: 16px;
+          max-width: 430px;
         }
 
-        .heading{
-          color:white;
-          font-size:18px;
-          font-weight:300;
-          margin-bottom:16px;
+        .footer-heading {
+          color: #193d2a;
+          font-size: 17px;
+          font-weight: 600;
+          margin-bottom: 18px;
         }
 
-        .link{
-          color:#C7D7F8;
-          margin-bottom:12px;
-          font-size:15px;
-          font-weight:300;
-          cursor:pointer;
-          transition:.25s;
+        .footer-link {
+          color: #53665a;
+          margin-bottom: 13px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: .25s;
+          width: fit-content;
         }
 
-        .link:hover{
-          color:#38BDF8;
-          transform:translateX(4px);
+        .footer-link:hover {
+          color: #34734d;
+          transform: translateX(4px);
         }
 
-        .bottom{
-          margin-top:35px;
-          padding-top:20px;
-          border-top:1px solid rgba(255,255,255,.08);
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          flex-wrap:wrap;
+        .footer-bottom {
+          margin-top: 35px;
+          padding-top: 22px;
+          border-top: 1px solid #dce9df;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 18px;
         }
 
-        .copy{
-          color:#9FB7E8;
-          font-size:14px;
-          font-weight:300;
+        .footer-copy {
+          color: #627268;
+          font-size: 13px;
         }
 
-        .social{
-          display:flex;
-          gap:12px;
+        .footer-social {
+          display: flex;
+          gap: 12px;
         }
 
-        .icon{
-          width:44px;
-          height:44px;
-          border-radius:50%;
-          background:rgba(255,255,255,.08);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          font-size:18px;
-          cursor:pointer;
-          transition:.3s;
+        .footer-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: #ffffff;
+          border: 1px solid #dce9df;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          cursor: pointer;
+          transition: .3s;
         }
 
-        .icon:hover{
-          background:#2563EB;
-          transform:translateY(-5px);
+        .footer-icon:hover {
+          background: #34734d;
+          transform: translateY(-4px);
         }
 
-        @media(max-width:900px){
-          .top{
-            grid-template-columns:1fr;
+        @media(max-width: 900px) {
+          .footer-top {
+            grid-template-columns: 1fr;
+            gap: 30px;
           }
 
-          .bottom{
-            justify-content:center;
-            text-align:center;
-            gap:18px;
+          .footer-bottom {
+            justify-content: center;
+            text-align: center;
           }
         }
       `}</style>
 
-      <footer className="footer">
-        <div className="footerContainer">
-
-          <div className="top">
+      <footer className="footer-section">
+        <div className="footer-container">
+          <div className="footer-top">
 
             <div>
-              <div className="brand">MediScan AI</div>
+              <div className="footer-brand">MediScan AI</div>
 
-              <p className="desc">
-                Premium AI healthcare platform for intelligent chest X-ray
-                diagnosis, explainable heatmaps, confidence scoring and
-                hospital-grade medical reporting.
+              <p className="footer-desc">
+                AI-assisted chest X-ray screening with visual
+                explanations, prediction confidence and clear
+                medical reporting. Designed to support clinical
+                review, not replace professional diagnosis.
               </p>
             </div>
 
             <div>
-              <div className="heading">Navigation</div>
+              <div className="footer-heading">Navigation</div>
 
-              <div className="link" onClick={()=>navigate("/")}>Home</div>
-              <div className="link" onClick={()=>navigate("/upload")}>Upload</div>
-              <div className="link" onClick={()=>navigate("/dashboard")}>Dashboard</div>
-              <div className="link" onClick={()=>navigate("/history")}>History</div>
+              <div className="footer-link" onClick={() => navigate("/")}>
+                Home
+              </div>
+
+              <div className="footer-link" onClick={() => navigate("/upload")}>
+                Upload
+              </div>
+
+              <div className="footer-link" onClick={() => navigate("/dashboard")}>
+                Dashboard
+              </div>
+
+              <div className="footer-link" onClick={() => navigate("/history")}>
+                History
+              </div>
             </div>
 
             <div>
-              <div className="heading">Features</div>
+              <div className="footer-heading">Features</div>
 
-              <div className="link">AI Diagnosis</div>
-              <div className="link">Heatmap</div>
-              <div className="link">PDF Report</div>
-              <div className="link">Analytics</div>
+              <div className="footer-link">AI Diagnosis</div>
+              <div className="footer-link">Heatmap</div>
+              <div className="footer-link">PDF Report</div>
+              <div className="footer-link">Analytics</div>
             </div>
 
           </div>
 
-          <div className="bottom">
-
-            <div className="copy">
+          <div className="footer-bottom">
+            <div className="footer-copy">
               © 2026 MediScan AI • Artificial Intelligence Healthcare Platform
             </div>
 
-            <div className="social">
-              <div className="icon">🩺</div>
-              <div className="icon">🤖</div>
-              <div className="icon">📄</div>
+            <div className="footer-social">
+              <div className="footer-icon">🩺</div>
+              <div className="footer-icon">🤖</div>
+              <div className="footer-icon">📄</div>
             </div>
-
           </div>
-
         </div>
       </footer>
     </>
