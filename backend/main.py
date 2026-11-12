@@ -1,23 +1,22 @@
 
-from multiclass_routes import router as multiclass_router
-
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from PIL import Image, UnidentifiedImageError
-from tensorflow.keras.models import load_model, Model
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-
-from patient_routes import router as patient_router
+import os
+import uuid
+import sqlite3
+from datetime import date, datetime
 
 import tensorflow as tf
 import numpy as np
 import cv2
-import uuid
-import os
-import sqlite3
 
-from datetime import date, datetime
+from PIL import Image, UnidentifiedImageError
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+
+from patient_routes import router as patient_router
 
 
 # --------------------------------------------------
@@ -46,7 +45,6 @@ app.add_middleware(
 # API ROUTERS
 # --------------------------------------------------
 
-app.include_router(multiclass_router)
 app.include_router(patient_router)
 
 
@@ -319,8 +317,6 @@ async def predict(
     file: UploadFile = File(...)
 ):
 
-    # 1. Validate patient ID
-
     patient_id = patient_id.strip().upper()
 
     if not patient_id:
@@ -375,7 +371,7 @@ async def predict(
 
     age = calculate_age(date_of_birth)
 
-    # 2. Validate uploaded image
+    # Validate uploaded image
 
     if (
         not file.content_type
@@ -461,7 +457,7 @@ async def predict(
         axis=0
     )
 
-    # 3. Run AI prediction
+    # Run AI prediction
 
     binary_model, _ = get_binary_model()
 
@@ -503,7 +499,7 @@ async def predict(
         1.0 - pneumonia_probability
     )
 
-    # 4. Interpret experimental model score
+    # Interpret experimental model score
 
     if pneumonia_probability >= 0.70:
 
@@ -582,7 +578,7 @@ async def predict(
             "the X-ray and symptoms."
         )
 
-    # 5. Explain model result
+    # Explain model result
 
     if prediction == "Pneumonia Suspected":
 
@@ -621,7 +617,7 @@ async def predict(
             "disease, if any, the person has."
         )
 
-    # 6. Generate Grad-CAM
+    # Generate Grad-CAM
 
     try:
 
@@ -645,7 +641,7 @@ async def predict(
 
         heatmap_url = ""
 
-    # 7. Save scan record
+    # Save scan record
 
     scan_date = datetime.now().strftime(
         "%d %b %Y %I:%M %p"
@@ -707,7 +703,7 @@ async def predict(
     finally:
         conn.close()
 
-    # 8. Response
+    # Response
 
     screening_notice = (
         "This experimental AI tool only compares NORMAL "

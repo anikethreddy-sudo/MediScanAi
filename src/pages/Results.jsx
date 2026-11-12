@@ -67,15 +67,9 @@ export default function Results() {
       ? new Date(result.scan_date).toLocaleString()
       : new Date().toLocaleString();
 
-  // BACKEND PREDICTION IS THE SOURCE OF TRUTH
+  // ORIGINAL PNEUMONIA MODEL RESULT
 
   const prediction = result.prediction || "Unknown";
-  const isMulticlass = result.model_type === "multiclass";
-  const classScores =
-    isMulticlass && result.class_scores &&
-    typeof result.class_scores === "object"
-      ? result.class_scores
-      : null;
 
   const isPneumonia =
     prediction === "Pneumonia" ||
@@ -292,8 +286,6 @@ export default function Results() {
             </div>
           </header>
 
-          {/* PATIENT INFORMATION */}
-
           <section className="patientCard">
             <div className="sectionHeading">
               <div>
@@ -339,8 +331,6 @@ export default function Results() {
             </div>
           </section>
 
-          {/* SCREENING RESULT */}
-
           <section className={`resultCard ${statusClass}`}>
             <div className="resultCardContent">
               <div>
@@ -366,61 +356,6 @@ export default function Results() {
             </div>
           </section>
 
-
-          {isMulticlass && classScores && (
-            <section className="detailCard">
-              <div className="sectionHeading">
-                <div>
-                  <h2>Five-Class Model Scores</h2>
-                  <p>Relative image-pattern scores from the research model</p>
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gap: "16px" }}>
-                {Object.entries(classScores).map(([className, score]) => {
-                  const numericScore = Number(score);
-                  const safeScore = Number.isFinite(numericScore)
-                    ? Math.max(0, Math.min(100, numericScore))
-                    : 0;
-
-                  return (
-                    <div key={className}>
-                      <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "7px",
-                        gap: "12px"
-                      }}>
-                        <strong>{className}</strong>
-                        <strong>{safeScore.toFixed(2)}%</strong>
-                      </div>
-                      <div style={{
-                        height: "9px",
-                        background: "#e8eeeb",
-                        borderRadius: "20px",
-                        overflow: "hidden"
-                      }}>
-                        <div style={{
-                          width: `${safeScore}%`,
-                          height: "100%",
-                          background: "#08785B",
-                          borderRadius: "20px"
-                        }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <p style={{ marginTop: "18px", fontSize: "13px" }}>
-                These are model output scores, not disease probabilities or
-                confirmed diagnoses. Do not use them to make treatment decisions.
-              </p>
-            </section>
-          )}
-
-          {/* MEDICAL NOTICE */}
-
           <section className="informationCard">
             <div className="sectionHeading">
               <div>
@@ -431,8 +366,6 @@ export default function Results() {
 
             <p>{screeningNotice}</p>
           </section>
-
-          {/* MODEL INTERPRETATION */}
 
           <section className="detailCard">
             <div className="sectionHeading">
@@ -457,8 +390,6 @@ export default function Results() {
               <p>{counterpoint}</p>
             </div>
           </section>
-
-          {/* FOLLOW-UP INFORMATION */}
 
           <section className="detailCard">
             <div className="sectionHeading">
@@ -491,8 +422,6 @@ export default function Results() {
             </div>
           </section>
 
-          {/* SCAN IMAGES */}
-
           <section className="imagesCard">
             <div className="sectionHeading">
               <div>
@@ -521,8 +450,6 @@ export default function Results() {
               />
             </div>
           </section>
-
-          {/* DISCLAIMER */}
 
           <section className="disclaimerCard">
             <h2>A note about this report</h2>
@@ -777,8 +704,6 @@ export default function Results() {
           font-weight: 400;
         }
 
-        /* SCREENING RESULT */
-
         .resultCard {
           padding: 30px 32px;
           border-radius: 11px;
@@ -833,8 +758,6 @@ export default function Results() {
           flex-shrink: 0;
         }
 
-        /* NORMAL - FULL LIGHT GREEN */
-
         .resultCard.normalResult {
           background: #EAF5EF;
           border: 1px solid #CFE5D6;
@@ -853,8 +776,6 @@ export default function Results() {
           color: #176B4B;
         }
 
-        /* PNEUMONIA - FULL LIGHT RED */
-
         .resultCard.pneumoniaResult {
           background: #FCEDEE;
           border: 1px solid #F0CED1;
@@ -872,8 +793,6 @@ export default function Results() {
           background: #F6DADD;
           color: #A83D45;
         }
-
-        /* INCONCLUSIVE - FULL LIGHT AMBER */
 
         .resultCard.inconclusiveResult {
           background: #FBF7ED;

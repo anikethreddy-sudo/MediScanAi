@@ -9,7 +9,6 @@ export default function Upload() {
   const navigate = useNavigate();
 
   const [patientMode, setPatientMode] = useState("new");
-
   const [patientName, setPatientName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("Male");
@@ -53,6 +52,10 @@ export default function Upload() {
       alert("Please select a valid image file.");
       e.target.value = "";
       return;
+    }
+
+    if (preview) {
+      URL.revokeObjectURL(preview);
     }
 
     setFile(selectedFile);
@@ -181,22 +184,15 @@ export default function Upload() {
         }
       }
 
-      // Send Patient ID to the prediction API
+      // Send patient details and X-ray to the pneumonia-only API
       const formData = new FormData();
 
       formData.append("username", doctorName);
       formData.append("patient_id", patient.patient_id);
       formData.append("file", file);
 
-      const useMulticlass = window.confirm(
-        "Use the experimental FIVE-CLASS research model?\n\nOK = Five-class model\nCancel = Original pneumonia model"
-      );
-
-      const predictionEndpoint = useMulticlass
-        ? "/predict-multiclass"
-        : "/predict";
-
-      const response = await fetch(`${API}${predictionEndpoint}`, {
+      // Only the binary NORMAL / PNEUMONIA prediction endpoint
+      const response = await fetch(`${API}/predict`, {
         method: "POST",
         body: formData,
       });
